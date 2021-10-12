@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.dtb": "plaintext",
+        "*.json": "json",
+        "lcd_touch.h": "c",
+        "dev_config.h": "c",
+        "stdio.h": "c",
+        "lcd_driver.h": "c",
+        "lcd_gui.h": "c"
+    }
+}

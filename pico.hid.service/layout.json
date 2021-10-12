@@ -1,0 +1,34 @@
+{
+    
+    "actions":
+    [
+        {
+            "key":0,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SWAP_LAYOUT",
+                "direction":"FORWARD"
+            }
+        },
+        {
+            "key":1,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SOUND_MIXER",
+                "command":"MIC_MUTE"
+            }
+        },
+        {
+            "key":15,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"RUN_PROGRAM",
+                "program":"C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+            }
+        }
+    ]
+
+}
