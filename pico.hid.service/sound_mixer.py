@@ -3,17 +3,25 @@ import win32gui
 import win32con 
 import win32com.client
 from enum import Enum
+import sounddevice as sd
+import soundfile as sf
+import numpy as np
 
 
 class MixerCommand(Enum):
     MIC_MUTE = 0
     SOUND_MUTE = 1
+    PLAY_FILE = 2
 
 
 class SoundMixer():
     def __init__(self):
         self.WM_APPCOMMAND = 0x319
         self.APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
+        self.APPCOMMAND_SYSTEM_VOLUME_MUTE = 0x80000
+        self.IsMuted = False
+        self.IsSoundMuted = False
+        print(sd.query_devices())
 
     def send_input_hax(self, hwnd, msg):
         for c in msg:
@@ -33,6 +41,26 @@ class SoundMixer():
         hwnd_active = win32gui.GetForegroundWindow()
         win32api.SendMessage(hwnd_active, self.WM_APPCOMMAND, None, self.APPCOMMAND_MICROPHONE_VOLUME_MUTE)
 
-    def execCommand(self, command):
+    def toggleSystemSound(self):
+        hwnd_active = win32gui.GetForegroundWindow()
+        win32api.SendMessage(hwnd_active, self.WM_APPCOMMAND, None, self.APPCOMMAND_SYSTEM_VOLUME_MUTE)
+        pass
+
+    def playFile(self, filepath):
+        if filepath is not None:
+            array, smp_rt = sf.read(filepath) 
+            sd.play(array, smp_rt)
+            sd.wait()
+            sd.stop()
+        pass
+
+    def execCommand(self, action):
+        command = action['command']
         if command == MixerCommand.MIC_MUTE.name:
             self.toggleMic()
+            self.IsMuted = not self.IsMuted
+        elif command == MixerCommand.SOUND_MUTE.name:
+            self.toggleSystemSound()
+            self.IsSoundMuted = not self.IsSoundMuted
+        elif command == MixerCommand.PLAY_FILE.name:
+            self.playFile(action['filepath'])

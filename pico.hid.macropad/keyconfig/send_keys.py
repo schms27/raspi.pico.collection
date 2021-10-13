@@ -18,15 +18,11 @@ class SerialKeypad():
         self.keyboard.send(Keycode.COMMAND, Keycode.SHIFT, Keycode.O)
     def teamsHangUp(self):
         self.keyboard.send(Keycode.COMMAND, Keycode.SHIFT, Keycode.B)
-    def sendSerial(self, key):
-        #command = hex(255)
-        value = 15
+    def sendSerial(self, key, value):
         padding = 2
-        command = "0x%0*X" % (padding,value)
-        payload = key
+        command = "0x%0*x" % (padding,value)
+        payload = '{:x}'.format(key)
         print(f"{command}{payload}")
-        #print(key)
-        #print('\r')
 
     #------------------------
     #--- REQUIRED METHODS ---
@@ -48,6 +44,11 @@ class SerialKeypad():
                 self.currentFrame = estimatedFrame
                 if self.frameIndex >= self.maxFrame:
                     self.startAnimationTime = -1
+        if not self.isServiceReady and self.loopCounter % 100 == 0:
+            print("loopCounter: {0}".format(self.loopCounter))
+            self.sendSerial(0, 0)
+
+        self.loopCounter += 1
 
     def getKeyColours(self):
         return (
@@ -73,6 +74,8 @@ class SerialKeypad():
         self.setKeyColour = setKeyColour
         self.keyboard = keyboard
         self.keyboardLayout= keyboardLayout
+        self.isServiceReady = False
+        self.loopCounter = 0
 
     def introduce(self):
         self.resetColours(COLOUR_OFF)
@@ -91,6 +94,6 @@ class SerialKeypad():
     def handleEvent(self, index, event):
         if not event & EVENT_SINGLE_PRESS:
             return
-
-        self.sendSerial(index)
+        print(index)
+        self.sendSerial(index, 15)
     #------------------------

@@ -94,6 +94,9 @@ def checkHeldForFlash(heldDownStartMillis):
 
 
 def exec_command(command, payloadRaw):
+    if command == 1:
+        currentKeypadConfiguration.sendSerial(-1, 2)
+        currentKeypadConfiguration.isServiceReady = True
     if command == 14:
         key = int(payloadRaw[:2])
         color = int(payloadRaw[2:])
@@ -111,7 +114,7 @@ def serial_read():
     if supervisor.runtime.serial_bytes_available:
         value = input().strip()
         parse_data(value)
-        #print(f"Received: {value}\r") 
+        
 
 
 #------------------------------------
