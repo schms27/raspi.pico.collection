@@ -7,12 +7,15 @@ class LayoutManager():
         self.layoutData = json.load(file)
 
     def getAction(self, keycode, key):
+        if keycode == None or key == None or key == -1:
+            return None
         for a in self.layoutData['actions']:
             try:
                 if a['key'] == key and a['keycode'] == keycode.name:
                     return a['action']
             except:
-                print("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
+                pass
+                # print("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
 
     def getBaseColors(self):
         keycolors = {}

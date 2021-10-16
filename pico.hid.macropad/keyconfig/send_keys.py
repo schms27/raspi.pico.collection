@@ -18,11 +18,19 @@ class SerialKeypad():
         self.keyboard.send(Keycode.COMMAND, Keycode.SHIFT, Keycode.O)
     def teamsHangUp(self):
         self.keyboard.send(Keycode.COMMAND, Keycode.SHIFT, Keycode.B)
-    def sendSerial(self, key, value):
-        padding = 2
-        command = "0x%0*x" % (padding,value)
-        payload = '{:x}'.format(key)
-        print(f"{command}{payload}")
+    def get_hexdata(self, base10, padding=2):
+        return "0x%0*X" % (padding,base10)
+    def build_message(self, command, *args):
+        message = self.get_hexdata(command)
+        for arg in args:
+            if arg[0] == -1:
+                continue
+            hexarg = self.get_hexdata(arg[0], arg[1])
+            message += f" {hexarg}"
+        return f"{message}\r"
+    def sendSerial(self, key, command):
+        print(self.build_message(command, (key, 2)))
+        time.sleep(0.01)
 
     #------------------------
     #--- REQUIRED METHODS ---
@@ -34,20 +42,20 @@ class SerialKeypad():
         ]
 
     def loop(self):
-        if self.startAnimationTime > 0:
-            estimatedFrame = int((timeInMillis() - self.startAnimationTime) / (ANIMATION_FRAME_MILLIS * 2))
-            if estimatedFrame > self.currentFrame:
-                # render new animation frame
-                self.teamsIntro(self.frameIndex)
-                self.frameIndex += 1
-                # print("  ~~> Animation frame: ", estimatedFrame)
-                self.currentFrame = estimatedFrame
-                if self.frameIndex >= self.maxFrame:
-                    self.startAnimationTime = -1
+#         if self.startAnimationTime > 0:
+#             estimatedFrame = int((timeInMillis() - self.startAnimationTime) / (ANIMATION_FRAME_MILLIS * 2))
+#             if estimatedFrame > self.currentFrame:
+#                 # render new animation frame
+#                 self.teamsIntro(self.frameIndex)
+#                 self.frameIndex += 1
+#                 # print("  ~~> Animation frame: ", estimatedFrame)
+#                 self.currentFrame = estimatedFrame
+#                 if self.frameIndex >= self.maxFrame:
+#                     self.startAnimationTime = -1
+        if self.loopCounter % 100 == 0:
+            print(f"Arsch {self.loopCounter}")
         if not self.isServiceReady and self.loopCounter % 100 == 0:
-            print("loopCounter: {0}".format(self.loopCounter))
             self.sendSerial(0, 0)
-
         self.loopCounter += 1
 
     def getKeyColours(self):
@@ -94,6 +102,5 @@ class SerialKeypad():
     def handleEvent(self, index, event):
         if not event & EVENT_SINGLE_PRESS:
             return
-        print(index)
         self.sendSerial(index, 15)
     #------------------------

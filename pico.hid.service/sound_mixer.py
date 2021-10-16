@@ -1,3 +1,4 @@
+from subprocess import call
 import win32api
 import win32gui
 import win32con 
@@ -21,7 +22,8 @@ class SoundMixer():
         self.APPCOMMAND_SYSTEM_VOLUME_MUTE = 0x80000
         self.IsMuted = False
         self.IsSoundMuted = False
-        print(sd.query_devices())
+        # print(sd.query_devices())
+        sd.default.device = next(x for x in sd.query_devices() if "CABLE Input (VB-Audio" in x['name'])['name']
 
     def send_input_hax(self, hwnd, msg):
         for c in msg:
@@ -48,13 +50,16 @@ class SoundMixer():
 
     def playFile(self, filepath):
         if filepath is not None:
-            array, smp_rt = sf.read(filepath) 
-            sd.play(array, smp_rt)
-            sd.wait()
-            sd.stop()
-        pass
+            array, smp_rt = sf.read(filepath)
+            try: 
+                sd.play(array, smp_rt)
+                sd.wait()
+                sd.stop()
+            except:
+                return False
+            return True
 
-    def execCommand(self, action):
+    def execCommand(self, action, callback=None):
         command = action['command']
         if command == MixerCommand.MIC_MUTE.name:
             self.toggleMic()
@@ -63,4 +68,9 @@ class SoundMixer():
             self.toggleSystemSound()
             self.IsSoundMuted = not self.IsSoundMuted
         elif command == MixerCommand.PLAY_FILE.name:
-            self.playFile(action['filepath'])
+            filepath = action['filepath']
+            print(f"Started to play file '{filepath}'")
+            successful = self.playFile(filepath)
+            print("Played file '{0}' successfully: {1}".format(filepath, successful))
+        if callback is not None:
+            callback()

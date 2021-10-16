@@ -61,6 +61,9 @@ timeUp = [-1] * BUTTON_COUNT
 waiting = [False] * BUTTON_COUNT
 keypadButtonStates = [ timeDown, timeUp, waiting ]
 #------------------------------------
+
+blink_buttons = []
+
 def setKeyColour(pixel, colour):
     pixels[pixel] = (((colour >> 16) & 255), (colour >> 8) & 255, colour & 255)
 
@@ -98,25 +101,47 @@ def exec_command(command, payloadRaw):
         currentKeypadConfiguration.sendSerial(-1, 2)
         currentKeypadConfiguration.isServiceReady = True
     if command == 14:
-        key = int(payloadRaw[:2])
-        color = int(payloadRaw[2:])
+        key = int(payloadRaw[0])
+        color = int(payloadRaw[1])
+        try:
+            blink_conf = next(item for item in blink_buttons if item["key"] == key)
+            blink_buttons.remove(blink_conf)
+        except:
+            pass
         setKeyColour(key, color)
+    if command == 16:
+        blink_buttons.append({"key":int(payloadRaw[0], 16), "color":int(payloadRaw[1], 16), "interval":int(payloadRaw[2], 16), "state_on":True, "last_handled":0})
 
 def parseCommand(command):
     return int(command, 0)
 
+
 def parse_data(rawData):
-    # data = rawData.decode('utf-8')
     command = parseCommand(rawData[:4])
-    exec_command(command, rawData[4:])
+    exec_command(command, rawData[4:].split())
 
 def serial_read():
     if supervisor.runtime.serial_bytes_available:
         value = input().strip()
         parse_data(value)
+
+def handle_button_blink():
+    global last_handled_time
+    global blink_buttons
+    current_mono_time = time.monotonic_ns() / 1e6
+    for blink_conf in blink_buttons:
+        delta_time = current_mono_time - blink_conf["last_handled"]
+        if delta_time > blink_conf["interval"]:
+            print(blink_conf)
+            if not blink_conf["state_on"]:
+                setKeyColour(blink_conf["key"], blink_conf["color"])
+                blink_conf["state_on"] = True
+            else:
+                pass
+                setKeyColour(blink_conf["key"], 0)
+                blink_conf["state_on"] = False
+            blink_conf["last_handled"] = current_mono_time
         
-
-
 #------------------------------------
 currentKeypadConfiguration = KeypadInterface(kbd, layout, setKeyColour)
 currentKeypadConfiguration.introduce()
@@ -125,13 +150,14 @@ helpMode=False
 
 
 swapLayout()
+loop_counter = 0
 while True:
     serial_read()
 
     currentKeypadConfiguration.loop()
 
     pressed = read_button_states(0, BUTTON_COUNT)
-
+    print(f"A {loop_counter}")
     for keyIndex in range(BUTTON_COUNT):
         event = checkButton(keyIndex, pressed[keyIndex], keypadButtonStates, checkHeldForFlash)
         if helpMode:
@@ -139,3 +165,6 @@ while True:
             helpMode = False
         else:
             currentKeypadConfiguration.handleEvent(keyIndex, event)
+    print(f"B {loop_counter}")
+    handle_button_blink()
+    loop_counter += 1

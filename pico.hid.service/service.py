@@ -24,8 +24,9 @@ class Order(Enum):
     ERROR = 4
     RECEIVED = 5
     STOP = 6
-    SHORT_PRESSED = 15
     SET_COLOR = 14
+    SHORT_PRESSED = 15
+    SET_BLINK_COLOR = 16
 
 class Action(Enum):
     RUN_PROGRAM = 0
@@ -48,18 +49,28 @@ class Color(Enum):
 def run_program(path):
     subprocess.call([path])
 
-def get_hexcommand(command):
-    padding = 2
-    return "0x%0*X" % (padding,command)
+def build_message(command, *args):
+    message = get_hexdata(command)
+    for arg in args:
+        hexarg = get_hexdata(arg[0], arg[1])
+        message += f" {hexarg}"
+    return f"{message}\r"
+
+def get_hexdata(base10, padding=2):
+    return "0x%0*X" % (padding,base10)
 
 def set_color(key, color):
-    reply = f"{get_hexcommand(Order.SET_COLOR.value)}{key:02}{int(color, 0)}\r"
+    reply = build_message(Order.SET_COLOR.value, (key, 2), (int(color, 0),6))
+    send_message(bytes(reply, encoding='utf-8'))
+
+def set_blink_color(key, color, interval):
+    reply = build_message(Order.SET_BLINK_COLOR.value, (key, 2), (int(color, 0),6), (interval,3))
     send_message(bytes(reply, encoding='utf-8'))
 
 def exec_establish_connection(command):
     global isDeviceReady
     if command == Order.HELLO:
-        reply = f"{get_hexcommand(Order.SERVICE_READY.value)}00000\r"
+        reply = build_message(Order.SERVICE_READY.value)
         send_message(bytes(reply,encoding='utf-8'))
     elif command == Order.DEVICE_READY:
         isDeviceReady = True
@@ -68,7 +79,11 @@ def exec_establish_connection(command):
             set_color(k, Color[keycolors[k]].value)
 
 def exec_command(command, payload):
-    key = int(payload, 16)
+    args = payload.split()
+
+    key = None
+    if len(args) > 0:
+        key = int(args[0], 16)
     action = layoutManager.getAction(command, key)
     if action == None or command == Order.HELLO or command == Order.DEVICE_READY:
         return
@@ -77,17 +92,26 @@ def exec_command(command, payload):
     elif action['type'] == Action.SWAP_LAYOUT.name:
         print("dummy swap")
     elif action['type'] == Action.SOUND_MIXER.name:
-        soundMixer.execCommand(action)
-    process_callback(action, key)
+        command = action['command']
+        keycolors = layoutManager.getBaseColors()
+        colorStr = keycolors[key]
+        if command == MixerCommand.MIC_MUTE.name:
+            colorStr = action['toggleColors']['onColor']
+            if soundMixer.IsMuted:
+                colorStr = action['toggleColors']['offColor']
+        elif command == MixerCommand.SOUND_MUTE.name:
+            colorStr = action['toggleColors']['onColor']
+            if soundMixer.IsSoundMuted:
+                colorStr = action['toggleColors']['offColor']
+        elif command == MixerCommand.PLAY_FILE.name:
+            set_blink_color(key, Color[keycolors[key]].value, 150)
+        soundMixer.execCommand(action, lambda: set_color(key, Color[colorStr].value))
+    # process_callback(action, key)
 
 def process_callback(action, key):
     type = action['type']
     if type == Action.SOUND_MIXER.name:
         command = action['command']
-        if command == MixerCommand.PLAY_FILE.name:
-            return
-
-
         colorStr = action['toggleColors']['offColor']
         if command == MixerCommand.MIC_MUTE.name:
             if soundMixer.IsMuted:
@@ -100,6 +124,7 @@ def process_callback(action, key):
 def send_message(payload):
     ser.write(payload) 
     ser.flush()
+    time.sleep(0.00)
 
 def parseCommand(command):
     return Order(int(command, 0))
@@ -118,7 +143,13 @@ def connect():
     global refreshRate
     while not isDeviceConnected:
         try:
-            ser = serial.Serial('COM7', baudrate=115200, timeout=0.1)
+            ser = serial.Serial(
+                port='COM7', 
+                baudrate = 9600,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1)
             isDeviceConnected = True
             refreshRate = 0.01
         except:
@@ -132,16 +163,11 @@ reply = b''
 
 while True:
     try:
-        a = ser.read()
+        bytestoread = ser.inWaiting()
+        if bytestoread != 0:
+            reply = ser.readline().strip()
+            parseInput(reply)
     except:
         isDeviceConnected = False
         refreshRate = 1
         ser = connect()
-
-    if a== b'\r' and ser.read()==b'\n':
-        parseInput(reply)
-        reply = b''
-    else:
-        reply += a
-
-    time.sleep(refreshRate)
