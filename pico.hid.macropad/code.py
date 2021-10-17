@@ -97,6 +97,7 @@ def checkHeldForFlash(heldDownStartMillis):
 
 
 def exec_command(command, payloadRaw):
+    print(payloadRaw)
     if command == 1:
         currentKeypadConfiguration.sendSerial(-1, 2)
         currentKeypadConfiguration.isServiceReady = True
@@ -111,6 +112,16 @@ def exec_command(command, payloadRaw):
         setKeyColour(key, color)
     if command == 16:
         blink_buttons.append({"key":int(payloadRaw[0], 16), "color":int(payloadRaw[1], 16), "interval":int(payloadRaw[2], 16), "state_on":True, "last_handled":0})
+    if command == 17:
+        for key, c in enumerate(payloadRaw):
+            color = int(c)
+            try:
+                blink_conf = next(item for item in blink_buttons if item["key"] == key)
+                blink_buttons.remove(blink_conf)
+            except:
+                pass
+            setKeyColour(key, color)
+
 
 def parseCommand(command):
     return int(command, 0)
@@ -157,7 +168,7 @@ while True:
     currentKeypadConfiguration.loop()
 
     pressed = read_button_states(0, BUTTON_COUNT)
-    print(f"A {loop_counter}")
+
     for keyIndex in range(BUTTON_COUNT):
         event = checkButton(keyIndex, pressed[keyIndex], keypadButtonStates, checkHeldForFlash)
         if helpMode:
@@ -165,6 +176,6 @@ while True:
             helpMode = False
         else:
             currentKeypadConfiguration.handleEvent(keyIndex, event)
-    print(f"B {loop_counter}")
+
     handle_button_blink()
     loop_counter += 1

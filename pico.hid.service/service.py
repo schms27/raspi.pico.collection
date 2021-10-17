@@ -34,6 +34,7 @@ class Order(Enum):
     SET_COLOR = 14
     SHORT_PRESSED = 15
     SET_BLINK_COLOR = 16
+    SET_MULTI_COLOR = 17
 
 class Action(Enum):
     RUN_PROGRAM = 0
@@ -72,9 +73,19 @@ def set_color(key, color):
     reply = build_message(Order.SET_COLOR.value, (key, 2), (int(color, 0),6))
     send_message(bytes(reply, encoding='utf-8'))
 
+def set_multi_color(colorstrings):
+    reply = build_message(Order.SET_MULTI_COLOR.value, *[(int(Color[colorstrings[i]].value, 0), 6) for i in colorstrings])
+    send_message(bytes(reply, encoding='utf-8'))
+
 def set_blink_color(key, color, interval):
     reply = build_message(Order.SET_BLINK_COLOR.value, (key, 2), (int(color, 0),6), (interval,3))
     send_message(bytes(reply, encoding='utf-8'))
+
+def set_base_colors():
+    keycolors = layoutManager.getBaseColors()
+    set_multi_color(keycolors)
+    #for k in keycolors.keys():
+    #    set_color(k, Color[keycolors[k]].value)
 
 def exec_establish_connection(command):
     global isDeviceReady
@@ -83,9 +94,8 @@ def exec_establish_connection(command):
         send_message(bytes(reply,encoding='utf-8'))
     elif command == Order.DEVICE_READY:
         isDeviceReady = True
-        keycolors = layoutManager.getBaseColors()
-        for k in keycolors.keys():
-            set_color(k, Color[keycolors[k]].value)
+        set_base_colors()
+        
 
 def exec_command(command, payload):
     args = payload.split()
@@ -99,7 +109,8 @@ def exec_command(command, payload):
     if action['type'] == Action.RUN_PROGRAM.name:
         run_program(action['program'])
     elif action['type'] == Action.SWAP_LAYOUT.name:
-        print("dummy swap")
+        layoutManager.swapLayout(action['direction'])
+        set_base_colors()
     elif action['type'] == Action.SOUND_MIXER.name:
         command = action['command']
         keycolors = layoutManager.getBaseColors()

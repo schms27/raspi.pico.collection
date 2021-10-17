@@ -52,8 +52,6 @@ class SerialKeypad():
 #                 self.currentFrame = estimatedFrame
 #                 if self.frameIndex >= self.maxFrame:
 #                     self.startAnimationTime = -1
-        if self.loopCounter % 100 == 0:
-            print(f"Arsch {self.loopCounter}")
         if not self.isServiceReady and self.loopCounter % 100 == 0:
             self.sendSerial(0, 0)
         self.loopCounter += 1
