@@ -1,0 +1,4 @@
+**/salt
+**/passwords.encrypted
+**/passwords.json
+**/*.pyc

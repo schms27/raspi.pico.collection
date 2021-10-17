@@ -87,6 +87,15 @@
             }
         },
         {
+            "key":12,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"PASTE_SENSITIVE_INFORMATION",
+                "password_name":"admin_pw"
+            }
+        },
+        {
             "key":14,
             "keycode":"SHORT_PRESSED",
             "action": 

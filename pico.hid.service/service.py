@@ -4,10 +4,17 @@ import time
 from enum import Enum
 from layout_manager import LayoutManager
 from sound_mixer import SoundMixer, MixerCommand
+from password_manager import PasswordManager
+from keyboard_manager import KeyboardManager
 import subprocess
+import os.path
+import pyperclip
+
 
 layoutManager = LayoutManager()
 soundMixer = SoundMixer()
+passwordManager = PasswordManager()
+keyboardManager = KeyboardManager()
 
 isDeviceReady = False
 isDeviceConnected = False
@@ -33,6 +40,7 @@ class Action(Enum):
     SWAP_LAYOUT = 1
     SOUND_MIXER = 2
     PLAY_SOUND = 3
+    PASTE_SENSITIVE_INFORMATION = 4
 
 class Color(Enum):
     RED = '0xff0000'
@@ -106,7 +114,10 @@ def exec_command(command, payload):
         elif command == MixerCommand.PLAY_FILE.name:
             set_blink_color(key, Color[keycolors[key]].value, 150)
         soundMixer.execCommand(action, lambda: set_color(key, Color[colorStr].value))
-    # process_callback(action, key)
+    elif action['type'] == Action.PASTE_SENSITIVE_INFORMATION.name:
+        sens_val = passwordManager.get_password(action['password_name'])
+        pyperclip.copy(sens_val)
+        keyboardManager.sendPaste()
 
 def process_callback(action, key):
     type = action['type']
@@ -141,10 +152,13 @@ def parseInput(rawData):
 def connect():
     global isDeviceConnected
     global refreshRate
+    serialPort = 'COM7'
+    print(f"Connecting to port '{serialPort}'", end="", flush=True)
     while not isDeviceConnected:
         try:
+            print(".", end="", flush=True)
             ser = serial.Serial(
-                port='COM7', 
+                port= serialPort, 
                 baudrate = 9600,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
@@ -156,6 +170,16 @@ def connect():
             time.sleep(1)
             pass
     return ser
+
+passwordfile = "passwords.encrypted"
+if not os.path.isfile(passwordfile):
+    print( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
+    pw = input()
+    passwordManager.encrypt_file("passwords.json", pw)
+
+print( "Password to decrypt passwordfile:")
+pw = input()
+passwordManager.decrypt_file(passwordfile, pw)
 
 
 ser = connect()
