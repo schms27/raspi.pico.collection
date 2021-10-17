@@ -47,6 +47,56 @@
             }
         },
         {
+            "key":4,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SOUND_MIXER",
+                "command":"MUSIC_TOGGLE_PLAY",
+                "service":"VOLUMIO_LOCAL",
+                "toggleColors":
+                {
+                    "onColor": "RED",
+                    "offColor": "GREEN"
+                }
+            }
+        },
+        {
+            "key":5,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SOUND_MIXER",
+                "command":"MUSIC_TOGGLE_MUTE",
+                "service":"VOLUMIO_LOCAL",
+                "toggleColors":
+                {
+                    "onColor": "ORANGE",
+                    "offColor": "GREEN"
+                }
+            }
+        },
+        {
+            "key":6,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SOUND_MIXER",
+                "command":"MUSIC_NEXT_TRACK",
+                "service":"VOLUMIO_LOCAL"
+            }
+        },
+        {
+            "key":7,
+            "keycode":"SHORT_PRESSED",
+            "action": 
+            {
+                "type":"SOUND_MIXER",
+                "command":"MUSIC_PREV_TRACK",
+                "service":"VOLUMIO_LOCAL"
+            }
+        },
+        {
             "key":8,
             "keycode":"SHORT_PRESSED",
             "action": 
@@ -138,15 +188,15 @@
         },
         {
             "key":5,
-            "color":"BLACK"
-        },
-        {
-            "key":6,
             "color":"WHITE"
         },
         {
+            "key":6,
+            "color":"LIGHTBLUE"
+        },
+        {
             "key":7,
-            "color":"BLACK"
+            "color":"LIGHTBLUE"
         },
         {
             "key":8,
@@ -166,11 +216,11 @@
         },
         {
             "key":12,
-            "color":"WHITE"
+            "color":"INDIGO"
         },
         {
             "key":13,
-            "color":"BLACK"
+            "color":"INDIGO"
         },
         {
             "key":14,

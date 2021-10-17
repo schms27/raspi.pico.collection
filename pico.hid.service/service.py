@@ -46,6 +46,7 @@ class Color(Enum):
     RED = '0xff0000'
     GREEN = '0x00ff00'
     BLUE = '0x0000ff'
+    LIGHTBLUE = '0x333388'
     WHITE = '0xffffff'
     BLACK = '0x000000'
     INDIGO = '0x4b0082'
@@ -111,6 +112,14 @@ def exec_command(command, payload):
             colorStr = action['toggleColors']['onColor']
             if soundMixer.IsSoundMuted:
                 colorStr = action['toggleColors']['offColor']
+        elif command == MixerCommand.MUSIC_TOGGLE_PLAY.name:
+            colorStr = action['toggleColors']['offColor']
+            if soundMixer.isMusicPlaying():
+                colorStr = action['toggleColors']['onColor']
+        elif command == MixerCommand.MUSIC_TOGGLE_MUTE.name:
+            colorStr = action['toggleColors']['onColor']
+            if soundMixer.isMusicMuted():
+                colorStr = action['toggleColors']['offColor']
         elif command == MixerCommand.PLAY_FILE.name:
             set_blink_color(key, Color[keycolors[key]].value, 150)
         soundMixer.execCommand(action, lambda: set_color(key, Color[colorStr].value))
@@ -169,6 +178,8 @@ def connect():
         except:
             time.sleep(1)
             pass
+    print("")
+    print(f"Successfully connected to device on port '{serialPort}'")
     return ser
 
 passwordfile = "passwords.encrypted"
