@@ -1,6 +1,2 @@
 pyperclip
 pywin32
-pynput
-sounddevice
-soundfile
-requests
