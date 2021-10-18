@@ -10,6 +10,7 @@ from keyboard_manager import KeyboardManager
 import subprocess
 import os.path
 import pyperclip
+import getpass
 
 settings = Settings()
 layoutManager = LayoutManager()
@@ -202,8 +203,8 @@ if not os.path.isfile(passwordfile):
     pw = input()
     passwordManager.encrypt_file("passwords.json", pw)
 
-print( "Password to decrypt passwordfile:")
-pw = input()
+print( "Decrypt passwordfile")
+pw = getpass.getpass()
 passwordManager.decrypt_file(passwordfile, pw)
 
 
