@@ -1,2 +1,6 @@
 pyperclip
 pypiwin32
+pynput
+sounddevice
+soundfile
+requests
