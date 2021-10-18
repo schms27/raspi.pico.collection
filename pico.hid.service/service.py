@@ -29,7 +29,7 @@ class Order(Enum):
     HELLO = 0
     SERVICE_READY = 1
     DEVICE_READY = 2
-    ALREADY_CONNECTED = 3
+    RESTART_BOARD = 3
     ERROR = 4
     RECEIVED = 5
     STOP = 6
@@ -173,6 +173,7 @@ def parseInput(rawData):
 
 def connect():
     global isDeviceConnected
+    global isDeviceReady
     global refreshRate
     serialPort = settings.getSetting('device_com_port')
     while not isDeviceConnected:
@@ -190,10 +191,16 @@ def connect():
             refreshRate = 0.01
         except PermissionError as e:
             print(e.strerror)
+            isDeviceConnected = False
+            isDeviceReady = False
         except (SerialException, FileNotFoundError) as e:
             print(f"Cannot find device on Port '{serialPort}'")
+            isDeviceConnected = False
+            isDeviceReady = False
         except Exception as e:
             print(e)
+            isDeviceConnected = False
+            isDeviceReady = False
     print(f"Successfully connected to device on port '{serialPort}'")
     return ser
 

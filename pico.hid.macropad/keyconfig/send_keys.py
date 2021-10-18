@@ -1,4 +1,5 @@
 import time
+import microcontroller
 from constants import *
 from adafruit_hid.keycode import Keycode
 
@@ -32,6 +33,10 @@ class SerialKeypad():
         print(self.build_message(command, (key, 2)))
         time.sleep(0.01)
 
+    def handleExtraLongPress(self, key):
+        if key == 0:
+            microcontroller.reset()
+
     #------------------------
     #--- REQUIRED METHODS ---
     IMAGE = [
@@ -42,16 +47,6 @@ class SerialKeypad():
         ]
 
     def loop(self):
-#         if self.startAnimationTime > 0:
-#             estimatedFrame = int((timeInMillis() - self.startAnimationTime) / (ANIMATION_FRAME_MILLIS * 2))
-#             if estimatedFrame > self.currentFrame:
-#                 # render new animation frame
-#                 self.teamsIntro(self.frameIndex)
-#                 self.frameIndex += 1
-#                 # print("  ~~> Animation frame: ", estimatedFrame)
-#                 self.currentFrame = estimatedFrame
-#                 if self.frameIndex >= self.maxFrame:
-#                     self.startAnimationTime = -1
         if not self.isServiceReady and self.loopCounter % 100 == 0:
             self.sendSerial(0, 0)
         self.loopCounter += 1
@@ -98,7 +93,8 @@ class SerialKeypad():
                 self.setKeyColour(key, colours[key][0])
 
     def handleEvent(self, index, event):
-        if not event & EVENT_SINGLE_PRESS:
-            return
-        self.sendSerial(index, 15)
+        if event & EVENT_EXTRA_LONG_PRESS:
+            self.handleExtraLongPress(index)
+        if event & EVENT_SINGLE_PRESS:
+            self.sendSerial(index, 15)
     #------------------------
