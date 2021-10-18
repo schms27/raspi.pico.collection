@@ -26,7 +26,7 @@ class MusicService(Enum):
 
 
 class SoundMixer():
-    def __init__(self):
+    def __init__(self, settings):
         self.WM_APPCOMMAND = 0x319
         self.APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
         self.APPCOMMAND_SYSTEM_VOLUME_MUTE = 0x80000
@@ -34,7 +34,9 @@ class SoundMixer():
         self.IsSoundMuted = False
         self.prev_volume = 20 # default 'not-muted' volume
         # print(sd.query_devices())
-        sd.default.device = next(x for x in sd.query_devices() if "CABLE Input (VB-Audio" in x['name'])['name']
+        playbackDevice = settings.getSetting("sound_playback_device")
+        if playbackDevice != "default":
+            sd.default.device = next(x for x in sd.query_devices() if playbackDevice in x['name'])['name']
 
     def send_input_hax(self, hwnd, msg):
         for c in msg:

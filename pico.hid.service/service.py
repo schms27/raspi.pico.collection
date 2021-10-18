@@ -3,6 +3,7 @@ import serial
 import time
 from enum import Enum
 from layout_manager import LayoutManager
+from settings import Settings
 from sound_mixer import SoundMixer, MixerCommand
 from password_manager import PasswordManager
 from keyboard_manager import KeyboardManager
@@ -10,9 +11,9 @@ import subprocess
 import os.path
 import pyperclip
 
-
+settings = Settings()
 layoutManager = LayoutManager()
-soundMixer = SoundMixer()
+soundMixer = SoundMixer(settings)
 passwordManager = PasswordManager()
 keyboardManager = KeyboardManager()
 
