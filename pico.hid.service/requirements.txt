@@ -1,3 +1,4 @@
 pyperclip
 pywin32
 serial
+sounddevice
