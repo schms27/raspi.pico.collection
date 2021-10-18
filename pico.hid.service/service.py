@@ -173,7 +173,7 @@ def parseInput(rawData):
 def connect():
     global isDeviceConnected
     global refreshRate
-    serialPort = 'COM7'
+    serialPort = settings.getSetting('device_com_port')
     print(f"Connecting to port '{serialPort}'", end="", flush=True)
     while not isDeviceConnected:
         try:
