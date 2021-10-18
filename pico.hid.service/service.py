@@ -1,5 +1,5 @@
 from layout_manager import LayoutManager
-import serial
+from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import time
 from enum import Enum
 from layout_manager import LayoutManager
@@ -174,24 +174,25 @@ def connect():
     global isDeviceConnected
     global refreshRate
     serialPort = settings.getSetting('device_com_port')
-    print(f"Connecting to port '{serialPort}'", end="", flush=True)
     while not isDeviceConnected:
+        time.sleep(3)
         try:
-            print(".", end="", flush=True)
-            ser = serial.Serial(
+            print(f"Connecting to port '{serialPort}...'")
+            ser = Serial(
                 port=serialPort, 
                 baudrate=9600,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
+                parity=PARITY_NONE,
+                stopbits=STOPBITS_ONE,
+                bytesize=EIGHTBITS,
                 timeout=1)
             isDeviceConnected = True
             refreshRate = 0.01
+        except PermissionError as e:
+            print(e.strerror)
+        except (SerialException, FileNotFoundError) as e:
+            print(f"Cannot find device on Port '{serialPort}'")
         except Exception as e:
-            time.sleep(1)
             print(e)
-            pass
-    print("")
     print(f"Successfully connected to device on port '{serialPort}'")
     return ser
 

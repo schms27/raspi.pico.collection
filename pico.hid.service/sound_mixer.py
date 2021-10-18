@@ -33,10 +33,10 @@ class SoundMixer():
         self.IsMuted = False
         self.IsSoundMuted = False
         self.prev_volume = 20 # default 'not-muted' volume
-        # print(sd.query_devices())
+        print(sd.query_devices())
         playbackDevice = settings.getSetting("sound_playback_device")
         if playbackDevice != "default":
-            sd.default.device = next(x for x in sd.query_devices() if playbackDevice in x['name'])['name']
+            sd.default.device = next(x for x in sd.query_devices() if playbackDevice in x['name'] and x['hostapi'] == 0)['name']
 
     def send_input_hax(self, hwnd, msg):
         for c in msg:
@@ -63,11 +63,15 @@ class SoundMixer():
 
     def playFile(self, filepath):
         if filepath is not None:
-            a = read(filepath)
-            array = np.array(a[1], dtype=float)
-            smp_rt = 44100
+            try:
+                a = read(filepath)
+            except Exception as e:
+                print(f"Exception occured while reading file {filepath}, {e}")
+            
+            array = np.array(a[1], dtype=int)
+            scaled =np.int16(array/np.max(np.abs(array)) * 32767)
             try: 
-                sd.play(array, smp_rt)
+                sd.play(scaled, a[0])
                 sd.wait()
                 sd.stop()
             except:
