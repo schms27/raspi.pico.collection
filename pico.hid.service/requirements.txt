@@ -2,6 +2,5 @@ pyperclip
 pywin32
 serial
 sounddevice
+scipy
 numpy
-cffi
-soundfile

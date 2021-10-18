@@ -5,9 +5,10 @@ import win32con
 import win32com.client
 from enum import Enum
 import sounddevice as sd
-import soundfile as sf
+from scipy.io.wavfile import read
 import requests
 import json
+import numpy as np
 
 
 class MixerCommand(Enum):
@@ -60,7 +61,9 @@ class SoundMixer():
 
     def playFile(self, filepath):
         if filepath is not None:
-            array, smp_rt = sf.read(filepath)
+            a = read(filepath)
+            array = np.array(a[1], dtype=float)
+            smp_rt = 44100
             try: 
                 sd.play(array, smp_rt)
                 sd.wait()
