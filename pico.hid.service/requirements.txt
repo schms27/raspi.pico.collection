@@ -4,3 +4,4 @@ serial
 sounddevice
 scipy
 numpy
+requests
