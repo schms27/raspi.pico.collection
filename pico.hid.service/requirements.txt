@@ -2,4 +2,6 @@ pyperclip
 pywin32
 serial
 sounddevice
+numpy
+cffi
 soundfile
