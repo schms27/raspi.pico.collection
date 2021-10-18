@@ -179,16 +179,17 @@ def connect():
         try:
             print(".", end="", flush=True)
             ser = serial.Serial(
-                port= serialPort, 
-                baudrate = 9600,
+                port=serialPort, 
+                baudrate=9600,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
                 timeout=1)
             isDeviceConnected = True
             refreshRate = 0.01
-        except:
+        except Exception as e:
             time.sleep(1)
+            print(e)
             pass
     print("")
     print(f"Successfully connected to device on port '{serialPort}'")
