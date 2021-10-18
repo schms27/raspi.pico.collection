@@ -1,6 +1,6 @@
 pyperclip
 pywin32
-serial
+pyserial
 sounddevice
 scipy
 numpy
