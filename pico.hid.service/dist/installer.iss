@@ -19,9 +19,9 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\Simu\Projects\raspi.pico.collection\pico.hid.service\installer
+OutputDir=pico.hid.service/installer
 OutputBaseFilename=setup-macropad-service
-SetupIconFile=C:\Users\Simu\Projects\raspi.pico.collection\pico.hid.service\dist\makro_icon.ico
+SetupIconFile=pico.hid.service/dist/makro_icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -33,8 +33,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Simu\Projects\raspi.pico.collection\pico.hid.service\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Simu\Projects\raspi.pico.collection\pico.hid.service\dist\appdata\*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
+Source: "pico.hid.service/dist/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pico.hid.service/dist/appdata/*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

@@ -31,4 +31,4 @@ jobs:
       run: choco install --verbose --yes innosetup
     # Build .iss 
     - name: Build installer using iscc
-      run: iscc.exe /pico.hid.service/dist/installer.iss
+      run: iscc.exe pico.hid.service/dist/installer.iss
