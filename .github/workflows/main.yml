@@ -27,8 +27,5 @@ jobs:
     runs-on: windows-latest
     steps:
     # Install Inno Setup with chocolatey
-    - task: PowerShell@2
-      displayName: 'Inno setup download'
-      inputs:
-        targetType: 'inline'
-        script: 'choco install innosetup'
+    - name: Inno setup download
+      run: choco install --verbose --yes innosetup
