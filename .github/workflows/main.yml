@@ -24,10 +24,11 @@ jobs:
         path: pico.hid.service/dist/windows
 
   build-installer:
+    needs: build
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    
+
     # Install Inno Setup with chocolatey
     - name: Inno setup download
       run: choco install --verbose --yes innosetup
