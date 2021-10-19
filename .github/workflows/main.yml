@@ -26,6 +26,8 @@ jobs:
   build-installer:
     runs-on: windows-latest
     steps:
+    - uses: actions/checkout@v2
+    
     # Install Inno Setup with chocolatey
     - name: Inno setup download
       run: choco install --verbose --yes innosetup
