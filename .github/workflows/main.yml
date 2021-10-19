@@ -29,3 +29,6 @@ jobs:
     # Install Inno Setup with chocolatey
     - name: Inno setup download
       run: choco install --verbose --yes innosetup
+    # Build .iss 
+    - name: Build installer using iscc
+      run: iscc.exe pico.hid.service/dist/installer.iss
