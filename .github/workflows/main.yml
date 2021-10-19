@@ -29,9 +29,24 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    # Download previously built exe
+    - uses: actions/download-artifact@v2
+      with:
+        name: hid.service
+        path: pico.hid.service/dist/windows
+
+    - run: cat pico.hid.service/dist/windows/macropad_service.exe
+
     # Install Inno Setup with chocolatey
     - name: Inno setup download
       run: choco install --verbose --yes innosetup
+
     # Build .iss 
     - name: Build installer using iscc
       run: iscc.exe pico.hid.service/dist/installer.iss
+
+    # upload created installer exe
+    - uses: actions/upload-artifact@v2
+      with:
+        name: hid.service.installer
+        path: pico.hid.service/dist/installer
