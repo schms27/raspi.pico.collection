@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -23,3 +22,13 @@ jobs:
       with:
         name: hid.service
         path: pico.hid.service/dist/windows
+
+  build-installer:
+    runs-on: windows-latest
+    steps:
+    # Install Inno Setup with chocolatey
+    - task: PowerShell@2
+      displayName: 'Inno setup download'
+      inputs:
+        targetType: 'inline'
+        script: 'choco install innosetup'
