@@ -6,7 +6,7 @@ from settings import Settings
 
 
 class MacroPadApp():
-    def __init__(self, arguments) -> None:
+    def __init__(self, arguments, log) -> None:
         self.isDeviceConnected = False
         self.isDeviceReady = False
         self.refreshRate = 0.5
@@ -14,17 +14,20 @@ class MacroPadApp():
         self.passwordManager = PasswordManager()
         self.settings = Settings(arguments.settingspath)
 
-        pw = arguments.password
+        self.log = log
 
-        passwordpath = self.settings.getSetting('password_filepath')
-        passwordfile_clear = "passwords.json"
-        passwordfile_enc = "passwords.encrypted"
-        if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
-            print( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
-            self.passwordManager.encrypt_file(os.path.join(passwordpath, passwordfile_clear), pw)
+        if arguments.password is not None:
+            pw = arguments.password
 
-        print( "Decrypt passwordfile")
-        self.passwordManager.decrypt_file(os.path.join(passwordpath,passwordfile_enc), pw)
+            passwordpath = self.settings.getSetting('password_filepath')
+            passwordfile_clear = "passwords.json"
+            passwordfile_enc = "passwords.encrypted"
+            if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
+                self.log( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
+                self.passwordManager.encrypt_file(os.path.join(passwordpath, passwordfile_clear), pw)
+
+            self.log( "Decrypt passwordfile")
+            self.passwordManager.decrypt_file(os.path.join(passwordpath,passwordfile_enc), pw)
 
     def connect(self):
         serialPort = self.settings.getSetting('device_com_port')
@@ -43,14 +46,14 @@ class MacroPadApp():
             print(e.strerror)
             raise Exception
         except (SerialException, FileNotFoundError) as e:
-            print(f"Cannot find device on Port '{serialPort}'")
+            self.log(f"Cannot find device on Port '{serialPort}'")
             raise Exception
         except Exception as e:
             print(e)
             self.isDeviceConnected = False
             self.isDeviceReady = False
             return
-        print(f"Successfully connected to device on port '{serialPort}'")
+        self.log(f"Successfully connected to device on port '{serialPort}'")
 
     def readSerial(self) -> None:
         try:

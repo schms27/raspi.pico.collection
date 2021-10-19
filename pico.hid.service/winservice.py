@@ -30,9 +30,11 @@ class Winservice(win32serviceutil.ServiceFramework):
         '''
         Constructor of the winservice
         '''
+        self.app_args = args
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
+        self.numOfCustomArguments = 0
 
     def SvcStop(self):
         '''

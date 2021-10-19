@@ -1,5 +1,6 @@
 import time
 import argparse
+import sys
 
 from winservice import Winservice
 
@@ -20,17 +21,15 @@ class MacropadService(Winservice):
         print(arguments.servicename)
 
     def main(self):
-        app = MacroPadApp(self._app_args_)
-        self.log("Hellooooo")
+        parser = argparse.ArgumentParser()
+        parser.add_argument('servicename', type=str, nargs='?')
+        parser.add_argument('-p', type=str, nargs='?', action='store',dest='password',help="Password to unlock file with sensitive data")
+        parser.add_argument('-s', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
+        cmdargs = parser.parse_args(self.app_args)
+        app = MacroPadApp(cmdargs, self.log)
         while self.isRunning:
             app.loop()
             time.sleep(1)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('action', type=str, nargs='?')
-    parser.add_argument('-p', type=str, nargs='?', action='store',dest='password',help="Password to unlock file with sensitive data")
-    parser.add_argument('-s', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
-    cmdargs = parser.parse_args()
-    MacropadService._app_args_ = cmdargs
     MacropadService.parse_command_line()

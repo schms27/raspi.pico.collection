@@ -2,5 +2,5 @@
 **/passwords.encrypted
 **/passwords.json
 **/*.pyc
+**/*.exe
 /build/*
-/dist/*
