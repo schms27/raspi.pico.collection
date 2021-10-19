@@ -1,4 +1,5 @@
 {
     "device_com_port":"COM7",
-    "sound_playback_device":"CABLE Input (VB-Audio"
+    "sound_playback_device":"default",
+    "password_filepath":"C:\\Users\\simon.schmid\\AppData\\Roaming\\MacroPad\\"
 }

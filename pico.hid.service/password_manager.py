@@ -10,6 +10,7 @@ class PasswordManager:
         return Fernet.generate_key()
 
     def encrypt_file(self, filepath, password):
+        basepath = os.path.dirname(filepath)
         with open(filepath, "rb") as file:
             key, salt = self.get_key_from_password(password)
             f = Fernet(key)
@@ -21,17 +22,18 @@ class PasswordManager:
             encrypted_data = f.encrypt(file_data)
 
             # write the encrypted file
-            with open("passwords.encrypted", "wb") as file:
+            with open(os.path.join(basepath,"passwords.encrypted"), "wb") as file:
                 file.write(encrypted_data)
             # write the salt file
-            with open("salt", "wb") as file:
+            with open(os.path.join(basepath,"salt"), "wb") as file:
                 file.write(salt)
             
             os.remove(filepath)
             print(f"Encrypted File '{filepath}' using key '{key}'")
 
     def decrypt_file(self, filepath, password):
-        with open("salt", "rb") as file:
+        basepath = os.path.dirname(filepath)
+        with open(os.path.join(basepath, "salt"), "rb") as file:
             salt = file.read()
             key, salt = self.get_key_from_password(password, salt)
             f = Fernet(key)
