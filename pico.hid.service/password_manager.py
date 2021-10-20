@@ -1,13 +1,32 @@
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
 import json
 import os
 import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from settings import Settings
 
 class PasswordManager:
+    def __init__(self, log: function, settings: Settings) -> None:
+        self.log = log
+        self.settings = settings
+
     def generate_encryption_key(self):
         return Fernet.generate_key()
+
+    def prepare_passwordfile(self, password: str) -> None:
+        passwordpath = self.settings.getSetting('password_filepath')
+        passwordfile_clear = "passwords.json"
+        passwordfile_enc = "passwords.encrypted"
+        if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
+            self.log( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
+            passwordfile_clear = os.path.join(passwordpath, passwordfile_clear)
+            if not os.path.isfile(passwordfile_clear):
+                self.log( f"Passwordfile not found, expected at path '{passwordfile_clear}'")
+                return
+            self.encrypt_file(passwordfile_clear, password)
+        self.log( "Decrypt passwordfile")
+        self.decrypt_file(os.path.join(passwordpath,passwordfile_enc), password)
 
     def encrypt_file(self, filepath, password):
         basepath = os.path.dirname(filepath)

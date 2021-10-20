@@ -17,8 +17,9 @@ class MacroPadApp():
         self.isDeviceReady = False
         self.refreshRate = 0.5
 
-        self.passwordManager = PasswordManager()
+
         self.settings = Settings(arguments.settingspath)
+        self.passwordManager = PasswordManager(log, self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.keyboardManager = KeyboardManager()
         self.soundMixer = SoundMixer(self.settings)
@@ -26,17 +27,7 @@ class MacroPadApp():
         self.log = log
 
         if arguments.password is not None:
-            pw = arguments.password
-
-            passwordpath = self.settings.getSetting('password_filepath')
-            passwordfile_clear = "passwords.json"
-            passwordfile_enc = "passwords.encrypted"
-            if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
-                self.log( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
-                self.passwordManager.encrypt_file(os.path.join(passwordpath, passwordfile_clear), pw)
-
-            self.log( "Decrypt passwordfile")
-            self.passwordManager.decrypt_file(os.path.join(passwordpath,passwordfile_enc), pw)
+            self.passwordManager.prepare_passwordfile(arguments.password)
 
     def connect(self):
         serialPort = self.settings.getSetting('device_com_port')
