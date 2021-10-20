@@ -1,9 +1,51 @@
 import os
 import time
+import subprocess
+import pyperclip
+from enum import Enum
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from password_manager import PasswordManager
-from settings import Settings
 
+from settings import Settings
+from keyboard_manager import KeyboardManager
+from layout_manager import LayoutManager
+from password_manager import PasswordManager
+from sound_mixer import SoundMixer, MixerCommand
+
+class Order(Enum):
+    """
+    Pre-defined orders
+    """
+    HELLO = 0
+    SERVICE_READY = 1
+    DEVICE_READY = 2
+    RESTART_BOARD = 3
+    ERROR = 4
+    RECEIVED = 5
+    STOP = 6
+    SET_COLOR = 14
+    SHORT_PRESSED = 15
+    SET_BLINK_COLOR = 16
+    SET_MULTI_COLOR = 17
+
+class Action(Enum):
+    RUN_PROGRAM = 0
+    SWAP_LAYOUT = 1
+    SOUND_MIXER = 2
+    PLAY_SOUND = 3
+    PASTE_SENSITIVE_INFORMATION = 4
+
+class Color(Enum):
+    RED = '0xff0000'
+    GREEN = '0x00ff00'
+    BLUE = '0x0000ff'
+    LIGHTBLUE = '0x333388'
+    WHITE = '0xffffff'
+    BLACK = '0x000000'
+    INDIGO = '0x4b0082'
+    VIOLET = '0x8f00ff'
+    CLEAR = '0x080808'
+    YELLOW = '0xffff00'
+    ORANGE = '0xffa500'
 
 class MacroPadApp():
     def __init__(self, arguments, log) -> None:
@@ -13,6 +55,9 @@ class MacroPadApp():
 
         self.passwordManager = PasswordManager()
         self.settings = Settings(arguments.settingspath)
+        self.layoutManager = LayoutManager()
+        self.keyboardManager = KeyboardManager()
+        self.soundMixer = SoundMixer()
 
         self.log = log
 
@@ -65,9 +110,100 @@ class MacroPadApp():
             self.isDeviceConnected = False
             self.connect()
 
-    def parseInput(self, serialData) -> None:
-        print(serialData)
-        pass
+    def run_program(self, path) -> None:
+        subprocess.call([path])
+
+    # ---------------- MOVE TO MESSAGE BUILDER CLASS ------------------
+    def build_message(self, command, *args) -> str:
+        message = self.get_hexdata(command)
+        for arg in args:
+            hexarg = self.get_hexdata(arg[0], arg[1])
+            message += f" {hexarg}"
+        return f"{message}\r"
+
+    def get_hexdata(self, base10, padding=2) -> str:
+        return "0x%0*X" % (padding,base10)
+    # ---------------- END: MOVE TO MESSAGE BUILDER CLASS ------------------
+
+    # ---------------- MOVE TO COLOR? CLASS ------------------
+    def set_color(self, key, color) -> None:
+        reply = self.build_message(Order.SET_COLOR.value, (key, 2), (int(color, 0),6))
+        self.send_message(bytes(reply, encoding='utf-8'))
+
+    def set_multi_color(self, colorstrings) -> None:
+        reply = self.build_message(Order.SET_MULTI_COLOR.value, *[(int(Color[colorstrings[i]].value, 0), 6) for i in colorstrings])
+        self.send_message(bytes(reply, encoding='utf-8'))
+
+    def set_blink_color(self, key, color, interval) -> None:
+        reply = self.build_message(Order.SET_BLINK_COLOR.value, (key, 2), (int(color, 0),6), (interval,3))
+        self.send_message(bytes(reply, encoding='utf-8'))
+
+    def set_base_colors(self) -> None:
+        keycolors = self.layoutManager.getBaseColors()
+        self.set_multi_color(keycolors)
+    # ---------------- END: MOVE TO COLOR? CLASS ------------------
+
+    def exec_establish_connection(self, command):
+        if command == Order.HELLO:
+            reply = self.build_message(Order.SERVICE_READY.value)
+            self.send_message(bytes(reply,encoding='utf-8'))
+        elif command == Order.DEVICE_READY:
+            self.isDeviceReady = True
+            self.set_base_colors()
+        
+    def exec_command(self, command, payload):
+        args = payload.split()  
+
+        key = None
+        if len(args) > 0:
+            key = int(args[0], 16)
+        action = self.layoutManager.getAction(command, key)
+        if action == None or command == Order.HELLO or command == Order.DEVICE_READY:
+            return
+        if action['type'] == Action.RUN_PROGRAM.name:
+            self.run_program(action['program'])
+        elif action['type'] == Action.SWAP_LAYOUT.name:
+            self.layoutManager.swapLayout(action['direction'])
+            self.set_base_colors()
+        elif action['type'] == Action.SOUND_MIXER.name:
+            command = action['command']
+            keycolors = self.layoutManager.getBaseColors()
+            colorStr = keycolors[key]
+            if command == MixerCommand.MIC_MUTE.name:
+                colorStr = action['toggleColors']['onColor']
+                if self.soundMixer.IsMuted:
+                    colorStr = action['toggleColors']['offColor']
+            elif command == MixerCommand.SOUND_MUTE.name:
+                colorStr = action['toggleColors']['onColor']
+                if self.soundMixer.IsSoundMuted:
+                    colorStr = action['toggleColors']['offColor']
+            elif command == MixerCommand.MUSIC_TOGGLE_PLAY.name:
+                colorStr = action['toggleColors']['offColor']
+                if self.soundMixer.isMusicPlaying():
+                    colorStr = action['toggleColors']['onColor']
+            elif command == MixerCommand.MUSIC_TOGGLE_MUTE.name:
+                colorStr = action['toggleColors']['onColor']
+                if self.soundMixer.isMusicMuted():
+                    colorStr = action['toggleColors']['offColor']
+            elif command == MixerCommand.PLAY_FILE.name:
+                self.set_blink_color(key, Color[keycolors[key]].value, 150)
+            self.soundMixer.execCommand(action, lambda: self.set_color(key, Color[colorStr].value))
+        elif action['type'] == Action.PASTE_SENSITIVE_INFORMATION.name:
+            sens_val = self.passwordManager.get_password(action['password_name'])
+            pyperclip.copy(sens_val)
+            self.keyboardManager.sendPaste()
+
+    def parseCommand(self, command) -> Order:
+        return Order(int(command, 0))
+
+    def parseInput(self, rawData) -> None:
+        data = rawData.decode('utf-8')
+        if data[:2] == '0x':
+            command = self.parseCommand(data[:4])
+        if self.isDeviceReady:
+            self.exec_command(command, data[4:])
+        else:
+            self.exec_establish_connection(command)
 
     def loop(self) -> None:
         if not self.isDeviceConnected:
