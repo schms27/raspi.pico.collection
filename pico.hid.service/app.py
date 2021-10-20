@@ -49,20 +49,20 @@ class MacroPadApp():
                 stopbits=STOPBITS_ONE,
                 bytesize=EIGHTBITS,
                 timeout=1)
-            self.isDeviceConnected = True
             time.sleep(3)
         except PermissionError as e:
-            print(e.strerror)
-            raise Exception
+            self.log(e.strerror)
         except (SerialException, FileNotFoundError) as e:
             self.log(f"Cannot find device on Port '{serialPort}'")
-            raise Exception
         except Exception as e:
             print(e)
-            self.isDeviceConnected = False
-            self.isDeviceReady = False
+            raise e
+        else:
+            self.isDeviceConnected = True
+            self.log(f"Successfully connected to device on port '{serialPort}'")
             return
-        self.log(f"Successfully connected to device on port '{serialPort}'")
+        self.isDeviceConnected = False
+        self.isDeviceReady = False
 
     def readSerial(self) -> None:
         try:
