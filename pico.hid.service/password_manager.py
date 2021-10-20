@@ -1,13 +1,14 @@
 import json
 import os
 import base64
+from typing import Callable
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from settings import Settings
 
 class PasswordManager:
-    def __init__(self, log: function, settings: Settings) -> None:
+    def __init__(self, log: Callable[[str], None], settings: Settings) -> None:
         self.log = log
         self.settings = settings
 
