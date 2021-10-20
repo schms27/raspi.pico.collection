@@ -1,5 +1,7 @@
 import json
 from enum import Enum
+from macro_enums import Order
+from settings import Settings
 
 class SwapDirection(Enum):
     FORWARD = 0
@@ -7,22 +9,22 @@ class SwapDirection(Enum):
 
 class LayoutManager():
 
-    def __init__(self):
-        file = open('layouts.json',)
+    def __init__(self, settings: Settings) -> None:
+        file = open(settings.getSetting('layouts_filepath'),)
         self.layoutData = json.load(file)
         self.switchLayout(0)
 
-    def swapLayout(self, direction):
+    def swapLayout(self, direction: str) -> None:
         newIndex = self.currentLayoutIndex - 1
         if(direction == SwapDirection.FORWARD.name):
             newIndex = self.currentLayoutIndex + 1
         self.switchLayout(newIndex % len(self.layoutData['layouts']))
 
         
-    def switchLayout(self, layoutIndex): 
+    def switchLayout(self, layoutIndex: int) -> None: 
         self.currentLayoutIndex = layoutIndex
 
-    def getAction(self, keycode, key):
+    def getAction(self, keycode: Order, key: int) -> str:
         if keycode == None or key == None or key == -1:
             return None
         for a in self.layoutData['layouts'][self.currentLayoutIndex]['actions']:
@@ -33,7 +35,7 @@ class LayoutManager():
                 pass
                 # print("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
 
-    def getBaseColors(self):
+    def getBaseColors(self) -> 'dict[str, str]':
         keycolors = {}
         for c in self.layoutData['layouts'][self.currentLayoutIndex]['baseColors']:
             keycolors[c['key']] = c['color']
