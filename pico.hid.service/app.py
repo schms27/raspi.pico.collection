@@ -21,7 +21,7 @@ class MacroPadApp():
         self.settings = Settings(arguments.settingspath)
         self.layoutManager = LayoutManager(self.settings)
         self.keyboardManager = KeyboardManager()
-        self.soundMixer = SoundMixer()
+        self.soundMixer = SoundMixer(self.settings)
 
         self.log = log
 
