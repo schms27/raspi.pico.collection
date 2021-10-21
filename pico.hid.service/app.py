@@ -77,7 +77,11 @@ class MacroPadApp():
             userName = "simu"
             password = "c-mu1337" 
             maxWaitMs = 60000
-            self.exec.runAsDomainUser(domainName, userName, password, path, maxWaitMs)
+            path = "C:/Program Files/Mozilla Firefox/firefox.exe"
+            try:
+                self.exec.runAsDomainUser(domainName, userName, password, path, maxWaitMs)
+            except Exception as e:
+                self.log(f"Error occured during exec: {e}")
         else:
             subprocess.Popen(path)
 
