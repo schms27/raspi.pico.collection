@@ -119,8 +119,8 @@ class ProgramExecuter():
         win32security.RevertToSelf()
 
         # Wait for process to complete
-        stdOutBuf = os.fdopen(msvcrt.open_osfhandle(stdOutRd, 0), "rb")
-        stdErrBuf = os.fdopen(msvcrt.open_osfhandle(stdErrRd, 0), "rb")
+        stdOutBuf = os.fdopen(msvcrt.open_osfhandle(stdOutRd.__int__, 0), "rb")
+        stdErrBuf = os.fdopen(msvcrt.open_osfhandle(stdErrRd.__int__ 0), "rb")
         win32event.WaitForSingleObject(hPrc, maxWait)
         stdOut = stdOutBuf.read()
         stdErr = stdErrBuf.read()
