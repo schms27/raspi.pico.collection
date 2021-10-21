@@ -11,6 +11,8 @@ from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
 
+import win32com.shell.shell as shell
+
 class MacroPadApp():
     def __init__(self, arguments, log) -> None:
         self.isDeviceConnected = False
@@ -69,7 +71,9 @@ class MacroPadApp():
             self.connect()
 
     def run_program(self, path) -> None:
-        subprocess.call([path])
+        subprocess.Popen(path, user="dd")
+
+
 
     # ---------------- MOVE TO MESSAGE BUILDER CLASS ------------------
     def build_message(self, command, *args) -> str:
