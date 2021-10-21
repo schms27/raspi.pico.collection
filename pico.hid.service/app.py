@@ -22,7 +22,7 @@ class MacroPadApp():
         self.passwordManager = PasswordManager(log, self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.keyboardManager = KeyboardManager()
-        self.soundMixer = SoundMixer(self.settings)
+        self.soundMixer = SoundMixer(log, self.settings)
 
         self.log = log
 
@@ -40,11 +40,12 @@ class MacroPadApp():
                 stopbits=STOPBITS_ONE,
                 bytesize=EIGHTBITS,
                 timeout=1)
-            time.sleep(3)
         except PermissionError as e:
             self.log(e.strerror)
+            return
         except (SerialException, FileNotFoundError) as e:
             self.log(f"Cannot find device on Port '{serialPort}'")
+            self.log(f"Error '{e}'")
         except Exception as e:
             print(e)
             raise e
@@ -59,9 +60,11 @@ class MacroPadApp():
         try:
             bytestoread = self.ser.inWaiting()
             if bytestoread != 0:
+                self.log(f"in waiting: {bytestoread}")
                 serialData = self.ser.readline().strip()
                 self.parseInput(serialData)
-        except:
+        except Exception as e:
+            self.log(f"reading exception: {e}")
             self.isDeviceConnected = False
             self.connect()
 
@@ -78,6 +81,11 @@ class MacroPadApp():
 
     def get_hexdata(self, base10, padding=2) -> str:
         return "0x%0*X" % (padding,base10)
+
+    def send_message(self, payload: str) -> None:
+        self.ser.write(payload) 
+        self.ser.flush()
+        time.sleep(0.00)
     # ---------------- END: MOVE TO MESSAGE BUILDER CLASS ------------------
 
     # ---------------- MOVE TO COLOR? CLASS ------------------
@@ -153,12 +161,13 @@ class MacroPadApp():
 
     def parseInput(self, rawData) -> None:
         data = rawData.decode('utf-8')
+        self.log(data)
         if data[:2] == '0x':
             command = self.parseCommand(data[:4])
-        if self.isDeviceReady:
-            self.exec_command(command, data[4:])
-        else:
-            self.exec_establish_connection(command)
+            if self.isDeviceReady:
+                self.exec_command(command, data[4:])
+            else:
+                self.exec_establish_connection(command)
 
     def loop(self) -> None:
         if not self.isDeviceConnected:

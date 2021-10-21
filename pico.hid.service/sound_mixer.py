@@ -4,11 +4,13 @@ import win32gui
 import win32con 
 import win32com.client
 from enum import Enum
+from typing import Callable
 import sounddevice as sd
 from scipy.io.wavfile import read
 import requests
 import json
 import numpy as np
+from settings import Settings
 
 
 class MixerCommand(Enum):
@@ -26,13 +28,15 @@ class MusicService(Enum):
 
 
 class SoundMixer():
-    def __init__(self, settings):
+    def __init__(self, log: Callable[[str], None], settings: Settings):
         self.WM_APPCOMMAND = 0x319
         self.APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
         self.APPCOMMAND_SYSTEM_VOLUME_MUTE = 0x80000
         self.IsMuted = False
         self.IsSoundMuted = False
         self.prev_volume = 20 # default 'not-muted' volume
+        self.log = log
+
         print(sd.query_devices())
         playbackDevice = settings.getSetting("sound_playback_device")
         if playbackDevice != "default":
@@ -66,7 +70,8 @@ class SoundMixer():
             try:
                 a = read(filepath)
             except Exception as e:
-                print(f"Exception occured while reading file {filepath}, {e}")
+                self.log(f"Exception occured while reading file {filepath}, {e}")
+                return False
             
             array = np.array(a[1], dtype=int)
             scaled =np.int16(array/np.max(np.abs(array)) * 32767)
@@ -74,7 +79,8 @@ class SoundMixer():
                 sd.play(scaled, a[0])
                 sd.wait()
                 sd.stop()
-            except:
+            except Exception as e:
+                self.log(f"Exception occured while playing file {filepath}, {e}")
                 return False
             return True
 

@@ -29,7 +29,7 @@ class MacropadService(Winservice):
         app = MacroPadApp(cmdargs, self.log)
         while self.isRunning:
             app.loop()
-            time.sleep(1)
+            time.sleep(0.1)
 
 if __name__ == '__main__':
     MacropadService.parse_command_line()
