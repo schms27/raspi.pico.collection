@@ -27,6 +27,8 @@ class MacropadService(Winservice):
         parser.add_argument('-s', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
         cmdargs = parser.parse_args(self.app_args)
         app = MacroPadApp(cmdargs, self.log)
+        app.isRunningAsService = MacropadService._svc_name_ == cmdargs.servicename
+
         while self.isRunning:
             app.loop()
             time.sleep(0.1)

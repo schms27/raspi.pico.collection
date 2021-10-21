@@ -10,8 +10,7 @@ from keyboard_manager import KeyboardManager
 from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
-
-import win32com.shell.shell as shell
+from program_executer import ProgramExecuter
 
 class MacroPadApp():
     def __init__(self, arguments, log) -> None:
@@ -19,12 +18,14 @@ class MacroPadApp():
         self.isDeviceReady = False
         self.refreshRate = 0.5
 
+        self.isRunningAsService = False
 
         self.settings = Settings(arguments.settingspath)
         self.passwordManager = PasswordManager(log, self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.keyboardManager = KeyboardManager()
         self.soundMixer = SoundMixer(log, self.settings)
+        self.exec = ProgramExecuter()
 
         self.log = log
 
@@ -71,7 +72,14 @@ class MacroPadApp():
             self.connect()
 
     def run_program(self, path) -> None:
-        subprocess.Popen(path, user="dd")
+        if self.isRunningAsService:
+            domainName = "desktop-kn035je" 
+            userName = "simu"
+            password = "c-mu1337" 
+            maxWaitMs = 60000
+            self.exec.runAsDomainUser(domainName, userName, password, path, maxWaitMs)
+        else:
+            subprocess.Popen(path)
 
 
 
