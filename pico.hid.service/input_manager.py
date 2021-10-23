@@ -6,6 +6,7 @@ from random import randint
 from pynput.keyboard import Key, Controller as KeyboardController
 from pynput.mouse import Button, Controller as MouseController
 from logging import debug, warning
+import pyperclip
 
 from macro_enums import Color
 
@@ -32,6 +33,9 @@ class InputManager():
         self.keyboard.press('v')
         self.keyboard.release('v')
         self.keyboard.release(Key.ctrl.value)
+
+    def clear_clipboard(self):
+        pyperclip.copy('')
 
     def moveMouseTo(self, x, y):
         debug(f"current mouse position is: {self.mouse.position}")
@@ -60,7 +64,7 @@ class InputManager():
             self.isAutoMouseMove = True
             self.animationStartTime = time.time_ns() // 1_000_000 
 
-    def getNextMouseMovements(self):
+    def getNextMouseMovements(self) -> list:
         targetCoord = next(self.generateRandomCoordinate(self.screen_width-10, self.screen_height-10))
         return self.createIntermediateCoordinates(self.mouse.position, targetCoord, randint(500, 5000))
 
