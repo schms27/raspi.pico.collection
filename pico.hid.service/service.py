@@ -6,7 +6,7 @@ from layout_manager import LayoutManager
 from settings import Settings
 from sound_mixer import SoundMixer, MixerCommand
 from password_manager import PasswordManager
-from keyboard_manager import KeyboardManager
+from keyboard_manager import InputManager
 import subprocess
 import os.path
 import pyperclip
@@ -16,7 +16,7 @@ settings = Settings()
 layoutManager = LayoutManager()
 soundMixer = SoundMixer(settings)
 passwordManager = PasswordManager()
-keyboardManager = KeyboardManager()
+keyboardManager = InputManager()
 
 isDeviceReady = False
 isDeviceConnected = False

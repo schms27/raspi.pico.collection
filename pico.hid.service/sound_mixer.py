@@ -11,6 +11,7 @@ import requests
 import json
 import numpy as np
 from settings import Settings
+from logging import debug, warning, error
 
 
 class MixerCommand(Enum):
@@ -28,14 +29,13 @@ class MusicService(Enum):
 
 
 class SoundMixer():
-    def __init__(self, log: Callable[[str], None], settings: Settings):
+    def __init__(self, settings: Settings):
         self.WM_APPCOMMAND = 0x319
         self.APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000
         self.APPCOMMAND_SYSTEM_VOLUME_MUTE = 0x80000
         self.IsMuted = False
         self.IsSoundMuted = False
         self.prev_volume = 20 # default 'not-muted' volume
-        self.log = log
 
         print(sd.query_devices())
         playbackDevice = settings.getSetting("sound_playback_device")
@@ -70,7 +70,7 @@ class SoundMixer():
             try:
                 a = read(filepath)
             except Exception as e:
-                self.log(f"Exception occured while reading file {filepath}, {e}")
+                warning(f"Exception occured while reading file {filepath}, {e}")
                 return False
             
             array = np.array(a[1], dtype=int)
@@ -80,7 +80,7 @@ class SoundMixer():
                 sd.wait()
                 sd.stop()
             except Exception as e:
-                self.log(f"Exception occured while playing file {filepath}, {e}")
+                error(f"Exception occured while playing file {filepath}, {e}")
                 return False
             return True
 
@@ -88,26 +88,26 @@ class SoundMixer():
         if service == MusicService.VOLUMIO_LOCAL.name:
             r = requests.get("http://volumio.local/api/v1/commands/?cmd=toggle")
             if r.status_code != 200:
-                print(f"failed to toggle music, reason: {r.reason}")
+                warning(f"failed to toggle music, reason: {r.reason}")
         else:
-            print("Service not implemented")
+            warning("Service not implemented")
 
     def playNextTrack(self, service):
         if service == MusicService.VOLUMIO_LOCAL.name:
             r = requests.get("http://volumio.local/api/v1/commands/?cmd=next")
             if r.status_code != 200:
-                print(f"failed to skip to next track, reason: {r.reason}")
+                warning(f"failed to skip to next track, reason: {r.reason}")
         else:
-            print("Service not implemented")
+            warning("Service not implemented")
 
     def playPreviousTrack(self, service):
         if service == MusicService.VOLUMIO_LOCAL.name:
             requests.get("http://volumio.local/api/v1/commands/?cmd=prev")
             r = requests.get("http://volumio.local/api/v1/commands/?cmd=prev")
             if r.status_code != 200:
-                print(f"failed to skip to previous track, reason: {r.reason}")
+                warning(f"failed to skip to previous track, reason: {r.reason}")
         else:
-            print("Service not implemented")
+            warning("Service not implemented")
 
     def toggleMuteMusic(self, service):
         if service == MusicService.VOLUMIO_LOCAL.name:
@@ -118,9 +118,9 @@ class SoundMixer():
             self.prev_volume = currVol
             r = requests.get(f"http://volumio.local/api/v1/commands/?cmd=volume&volume={newVol}")
             if r.status_code != 200:
-                print(f"failed to toggle mute music, reason: {r.reason}")
+                warning(f"failed to toggle mute music, reason: {r.reason}")
         else:
-            print("Service not implemented")
+            warning("Service not implemented")
 
     def getMusicServiceVolume(self, service=MusicService.VOLUMIO_LOCAL.name):
         if service == MusicService.VOLUMIO_LOCAL.name:
@@ -155,8 +155,8 @@ class SoundMixer():
             self.playPreviousTrack(action['service'])
         elif command == MixerCommand.PLAY_FILE.name:
             filepath = action['filepath']
-            print(f"Started to play file '{filepath}'")
+            debug(f"Started to play file '{filepath}'")
             successful = self.playFile(filepath)
-            print("Played file '{0}' successfully: {1}".format(filepath, successful))
+            debug("Played file '{0}' successfully: {1}".format(filepath, successful))
         if callback is not None:
             callback()

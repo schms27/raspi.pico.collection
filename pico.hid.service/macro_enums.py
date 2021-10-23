@@ -22,6 +22,7 @@ class Action(Enum):
     SOUND_MIXER = 2
     PLAY_SOUND = 3
     PASTE_SENSITIVE_INFORMATION = 4
+    INPUT = 5
 
 class Color(Enum):
     RED = '0xff0000'

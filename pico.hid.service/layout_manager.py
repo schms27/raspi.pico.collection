@@ -2,6 +2,7 @@ import json
 from enum import Enum
 from macro_enums import Order
 from settings import Settings
+from logging import debug
 
 class SwapDirection(Enum):
     FORWARD = 0
@@ -32,8 +33,7 @@ class LayoutManager():
                 if a['key'] == key and a['keycode'] == keycode.name:
                     return a['action']
             except:
-                pass
-                # print("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
+                debug("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
 
     def getBaseColors(self) -> 'dict[str, str]':
         keycolors = {}

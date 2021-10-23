@@ -3,39 +3,44 @@ import time
 import subprocess
 import pyperclip
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
+from logging import debug, info, warning, error
 
 from macro_enums import Order, Action, Color
 from settings import Settings
-from keyboard_manager import KeyboardManager
+from input_manager import InputManager
 from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
 from program_executer import ProgramExecuter
+from util import fibonacci
 
 class MacroPadApp():
-    def __init__(self, arguments, log) -> None:
+    def __init__(self, arguments) -> None:
         self.isDeviceConnected = False
         self.isDeviceReady = False
-        self.refreshRate = 0.5
+        self.reconnectInterval = 1
+        self.reconnectCounter = 0
+        self.cycleCounter = 0
 
         self.isRunningAsService = False
 
         self.settings = Settings(arguments.settingspath)
-        self.passwordManager = PasswordManager(log, self.settings)
+        self.passwordManager = PasswordManager(self.settings)
         self.layoutManager = LayoutManager(self.settings)
-        self.keyboardManager = KeyboardManager()
-        self.soundMixer = SoundMixer(log, self.settings)
+        self.inputManager = InputManager(self)
+        self.soundMixer = SoundMixer(self.settings)
         self.exec = ProgramExecuter()
-
-        self.log = log
 
         if arguments.password is not None:
             self.passwordManager.prepare_passwordfile(arguments.password)
 
     def connect(self):
+        if self.cycleCounter % self.reconnectInterval != 0:
+            return
         serialPort = self.settings.getSetting('device_com_port')
+        self.reconnectCounter += 1
         try:
-            print(f"Connecting to port '{serialPort}...'")
+            info(f"Connecting to port '{serialPort}', reconnecting for the '{self.reconnectCounter}' time")
             self.ser = Serial(
                 port=serialPort, 
                 baudrate=9600,
@@ -44,30 +49,34 @@ class MacroPadApp():
                 bytesize=EIGHTBITS,
                 timeout=1)
         except PermissionError as e:
-            self.log(e.strerror)
+            warning(e.strerror)
             return
         except (SerialException, FileNotFoundError) as e:
-            self.log(f"Cannot find device on Port '{serialPort}'")
-            self.log(f"Error '{e}'")
+            warning(f"Cannot find device on Port '{serialPort}'")
+            debug(f"Error '{e}'")
         except Exception as e:
-            print(e)
+            error(e)
             raise e
         else:
             self.isDeviceConnected = True
-            self.log(f"Successfully connected to device on port '{serialPort}'")
+            self.reconnectCounter = 0
+            self.reconnectInterval = 1
+            info(f"Successfully connected to device on port '{serialPort}'")
             return
+        self.reconnectInterval += fibonacci(self.reconnectCounter)
         self.isDeviceConnected = False
         self.isDeviceReady = False
+        self.cycleCounter = 0
 
     def readSerial(self) -> None:
         try:
             bytestoread = self.ser.inWaiting()
             if bytestoread != 0:
-                self.log(f"in waiting: {bytestoread}")
+                debug(f"in waiting: {bytestoread}")
                 serialData = self.ser.readline().strip()
                 self.parseInput(serialData)
         except Exception as e:
-            self.log(f"reading exception: {e}")
+            warning(f"reading exception: {e}")
             self.isDeviceConnected = False
             self.connect()
 
@@ -81,7 +90,7 @@ class MacroPadApp():
             try:
                 self.exec.runAsDomainUser(domainName, userName, password, path, maxWaitMs)
             except Exception as e:
-                self.log(f"Error occured during exec: {e}")
+                error(f"Error occured during exec: {e}")
         else:
             subprocess.Popen(path)
 
@@ -168,16 +177,22 @@ class MacroPadApp():
                 self.set_blink_color(key, Color[keycolors[key]].value, 150)
             self.soundMixer.execCommand(action, lambda: self.set_color(key, Color[colorStr].value))
         elif action['type'] == Action.PASTE_SENSITIVE_INFORMATION.name:
-            sens_val = self.passwordManager.get_password(action['password_name'])
+            password_key = action['password_name']
+            sens_val = self.passwordManager.get_password(password_key)
+            if sens_val is None:
+                warning(f"Sensitive Information with name '{password_key}' not found")
+                return
             pyperclip.copy(sens_val)
-            self.keyboardManager.sendPaste()
+            self.inputManager.sendPaste()
+        elif action['type'] == Action.INPUT.name:
+            self.inputManager.execCommand(action, key)
 
     def parseCommand(self, command) -> Order:
         return Order(int(command, 0))
 
     def parseInput(self, rawData) -> None:
         data = rawData.decode('utf-8')
-        self.log(data)
+        debug(data)
         if data[:2] == '0x':
             command = self.parseCommand(data[:4])
             if self.isDeviceReady:
@@ -190,3 +205,5 @@ class MacroPadApp():
             self.connect()
         else:
             self.readSerial()
+        self.cycleCounter += 1
+        self.inputManager.loop()

@@ -329,6 +329,27 @@
                         "type":"SWAP_LAYOUT",
                         "direction":"BACKWARD"
                     }
+                },
+                {
+                    "key":1,
+                    "keycode":"SHORT_PRESSED",
+                    "action": 
+                    {
+                        "type":"INPUT",
+                        "command":"MOVE_MOUSE",
+                        "x":10,
+                        "y":100
+                    }
+                },
+                {
+                    "key":2,
+                    "keycode":"SHORT_PRESSED",
+                    "action": 
+                    {
+                        "type":"INPUT",
+                        "command":"MOVE_MOUSE_RANDOM",
+                        "active_color":"RED"
+                    }
                 }
             ],
             "baseColors":

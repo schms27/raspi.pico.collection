@@ -6,10 +6,10 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from settings import Settings
+from logging import debug, info, warning
 
 class PasswordManager:
-    def __init__(self, log: Callable[[str], None], settings: Settings) -> None:
-        self.log = log
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
     def generate_encryption_key(self):
@@ -20,13 +20,13 @@ class PasswordManager:
         passwordfile_clear = "passwords.json"
         passwordfile_enc = "passwords.encrypted"
         if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
-            self.log( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
+            info( "Set Password to encrypt passwordfile (must be named 'passwords.json'):")
             passwordfile_clear = os.path.join(passwordpath, passwordfile_clear)
             if not os.path.isfile(passwordfile_clear):
-                self.log( f"Passwordfile not found, expected at path '{passwordfile_clear}'")
+                warning( f"Passwordfile not found, expected at path '{passwordfile_clear}'")
                 return
             self.encrypt_file(passwordfile_clear, password)
-        self.log( "Decrypt passwordfile")
+        debug("Decrypting passwordfile")
         self.decrypt_file(os.path.join(passwordpath,passwordfile_enc), password)
 
     def encrypt_file(self, filepath, password):
@@ -49,7 +49,7 @@ class PasswordManager:
                 file.write(salt)
             
             os.remove(filepath)
-            print(f"Encrypted File '{filepath}' using key '{key}'")
+            debug(f"Encrypted File '{filepath}' using key '{key}'")
 
     def decrypt_file(self, filepath, password):
         basepath = os.path.dirname(filepath)
@@ -64,7 +64,7 @@ class PasswordManager:
                 self.decrypted_data = f.decrypt(encrypted_data)
 
     def get_password(self, name):
-        if self.decrypted_data is not None:
+        if hasattr(self, 'decrypted_data'):
             json_data = json.loads(self.decrypted_data.decode('utf-8'))
             return json_data[name]
 
