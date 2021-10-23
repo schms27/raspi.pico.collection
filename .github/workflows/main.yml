@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r pico.hid.service/requirements.txt
     - name: Run tests with unittest/coverage
-      run: coverage run --source=${{ github.workspace }}\pico.hid.service unittest discover -s ${{ github.workspace }}\pico.hid.service
+      run: coverage run --source=${{ github.workspace }}\pico.hid.service -m unittest discover -s ${{ github.workspace }}\pico.hid.service
     - name: Generate code-coverage report
       run: coverage html
     - name: Publish code coverage report
