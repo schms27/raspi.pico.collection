@@ -77,15 +77,15 @@ class InputManager():
             intermediateCoordinates.append(np.array(startCoord) + (dir * i * (self.timestep / duration)))
         return intermediateCoordinates
 
-    def generateRandomCoordinate(self, max_x, max_y):
+    def generateRandomCoordinate(self, max_x, max_y, min_x=10, min_y=10 ):
         seen = set()
-        x, y = randint(10, max_x), randint(10, max_y)
+        x, y = randint(min_x, max_x), randint(min_y, max_y)
         while True:
             seen.add((x, y))
             yield (x, y)
-            x, y = randint(10, max_x), randint(10, max_y)
+            x, y = randint(min_x, max_x), randint(min_y, max_y)
             while (x, y) in seen:
-                x, y = randint(10, max_x), randint(10, max_y)
+                x, y = randint(min_x, max_x), randint(min_y, max_y)
 
     def execCommand(self, action, key):
         command = action['command']

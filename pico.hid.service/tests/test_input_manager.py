@@ -22,9 +22,15 @@ class TestInputManager(unittest.TestCase):
             self.input_manager.moveMouseTo(corner[0], corner[1])
             self.assertEqual(self.input_manager.mouse.position, (corner[0], corner[1]), 'mouse was not moved as expected')
 
-    def test_generate_random_coordinates(self):
+    def test_generate_next_mouse_movements(self):
         mouse_movements = self.input_manager.getNextMouseMovements()
         self.assertGreater(len(mouse_movements), 0)
+
+    def test_generate_random_coordinates(self):
+        # provoke collisions
+        for _ in range(20):
+            coord = next(self.input_manager.generateRandomCoordinate(10, 10, 0, 0))
+            self.assertTrue( 0 <= coord[0] <= 10 )
 
     def test_paste(self):
         # Collect events until released
