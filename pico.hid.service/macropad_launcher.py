@@ -7,6 +7,7 @@ import win32gui, win32con
 from logging import handlers
 
 from app import MacroPadApp
+from tray_icon_app import TrayIconApp
 
 class MacropadLauncher():
 
@@ -43,8 +44,13 @@ class MacropadLauncher():
 
         app = MacroPadApp(cmdargs)
 
+        trayApp = TrayIconApp()
+        trayApp.start()
+
         while self.isRunning:
             app.loop()
+            if not trayApp.is_alive():
+                self.isRunning = False
             time.sleep(0.1)
 
 if __name__ == '__main__':

@@ -8,3 +8,4 @@ requests
 cryptography
 pynput
 coverage
+PyQt5
