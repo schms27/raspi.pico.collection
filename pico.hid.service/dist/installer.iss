@@ -41,6 +41,7 @@ Source: "appdata/*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignorever
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{commonstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks:StartMenuEntry;
 
 [Code]
 procedure InstallService;
