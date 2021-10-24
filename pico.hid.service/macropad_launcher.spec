@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+specpath = os.path.dirname(os.path.abspath(SPEC))
 
 block_cipher = None
 
@@ -36,4 +36,5 @@ exe = EXE(pyz,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None )
+          entitlements_file=None,
+          icon='.\dist\makro_icon.ico' )

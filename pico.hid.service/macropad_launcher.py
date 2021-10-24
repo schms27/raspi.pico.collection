@@ -44,6 +44,7 @@ class MacropadLauncher():
 
         app = MacroPadApp(cmdargs)
 
+
         if cmdargs.noconsole:
             console_window = win32gui.GetForegroundWindow()
             win32gui.ShowWindow(console_window , win32con.SW_HIDE)
