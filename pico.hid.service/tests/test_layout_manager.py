@@ -8,10 +8,10 @@ class TestLayoutManager(unittest.TestCase):
 
     # @patch('layout_manager.LayoutManager')
     def setUp(self): 
-        settings = Settings('./tests/')
+        settings = Settings('.pico.hid.service/tests/')
         self.layout_manager = LayoutManager(settings)
 
-    def test_set_mouse_position(self):
+    def test_swap_layout(self):
         self.assertEqual(self.layout_manager.currentLayoutIndex, 0)
         self.layout_manager.swapLayout("FORWARD")
         self.assertEqual(self.layout_manager.currentLayoutIndex, 1)
