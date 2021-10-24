@@ -24,7 +24,7 @@ class MacropadLauncher():
         ch.setFormatter(format)
         self.log.addHandler(ch)
 
-        fh = handlers.TimedRotatingFileHandler(os.path.join(os.getenv('LOCALAPPDATA'), "MacropadLauncher" "macropad.log"), when='midnight', backupCount=7)
+        fh = handlers.TimedRotatingFileHandler(os.path.join(os.getenv('LOCALAPPDATA'), "MacropadLauncher\\" "macropad.log"), when='midnight', backupCount=7)
         fh.setFormatter(format)
         self.log.addHandler(fh)
 
