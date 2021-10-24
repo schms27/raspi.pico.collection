@@ -30,8 +30,8 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startup"; Description: "Automatically start on login"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "startup"; Description: "Automatically start on login"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 Source: "windows/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
@@ -41,8 +41,11 @@ Source: "appdata/*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignorever
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: startup
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService --noconsole"; Tasks: desktopicon; Flags: runminimized
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService --noconsole"; Tasks: startup; Flags: runminimized
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s C:\ProgramData\MacroPadService" ;Flags: postinstall skipifsilent
 
 [Code]
 procedure InstallService;
@@ -82,23 +85,23 @@ begin
   GetPasswordForServiceAndInstall();
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
-begin
-  if CurStep = ssPostInstall then
-  begin
-    { Read custom value }
-    Password := CustomQueryPage.Values[0];
-    MsgBox(Password, mbInformation, MB_OK);
+//   procedure CurStepChanged(CurStep: TSetupStep);
+//   begin
+//     if CurStep = ssPostInstall then
+//     begin
+//       //Read custom value
+//       Password := CustomQueryPage.Values[0];
+//       MsgBox(Password, mbInformation, MB_OK);
 
-    MsgBox(ExpandConstant('{app}\{#MyAppExeName}') + ' install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, mbInformation, MB_OK);
-    // Install Service and wait for it to terminate
-    if not Exec(ExpandConstant('{app}\{#MyAppExeName}'), 'install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, '', SW_SHOWNORMAL,
-     ewWaitUntilTerminated, ResultCode) then
-      begin
-        MsgBox('Failed to install Service!' + #13#10 +
-          SysErrorMessage(ResultCode), mbError, MB_OK);
-      end;
-  end;
-end;
+//       MsgBox(ExpandConstant('{app}\{#MyAppExeName}') + ' install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, mbInformation, MB_OK);
+//       // Install Service and wait for it to terminate
+//       if not Exec(ExpandConstant('{app}\{#MyAppExeName}'), 'install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, '', SW_SHOWNORMAL,
+//        ewWaitUntilTerminated, ResultCode) then
+//         begin
+//           MsgBox('Failed to install Service!' + #13#10 +
+//             SysErrorMessage(ResultCode), mbError, MB_OK);
+//         end;
+//     end;
+//   end;
 
 
