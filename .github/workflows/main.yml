@@ -58,7 +58,7 @@ jobs:
         name: hid.service
         path: pico.hid.service/dist/windows
 
-    - run: cat pico.hid.service/dist/windows/macropad_service.exe
+    - run: cat pico.hid.service/dist/windows/macropad_launcher.exe
 
     # Install Inno Setup with chocolatey
     - name: Inno setup download
