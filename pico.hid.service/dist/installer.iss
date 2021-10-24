@@ -41,8 +41,8 @@ Source: "appdata/*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignorever
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService --noconsole"; Tasks: desktopicon; Flags: runminimized
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService --noconsole"; Tasks: startup; Flags: runminimized
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService"; Tasks: desktopicon; Flags: runminimized
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s C:\ProgramData\MacroPadService"; Tasks: startup; Flags: runminimized
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s C:\ProgramData\MacroPadService" ;Flags: postinstall skipifsilent

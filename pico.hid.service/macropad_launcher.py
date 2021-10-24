@@ -35,8 +35,6 @@ class MacropadLauncher():
         parser.add_argument('-p', '--password', type=str, nargs='?', action='store',dest='password',help="Password to unlock file with sensitive data")
         parser.add_argument('-s', '--settings_path', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
         parser.add_argument('-l', '--log', type=str, nargs='?', action='store',dest='loglevel',help="desired loglevel")
-        parser.add_argument('--noconsole', action='store_true',dest='noconsole', help="hide console window on start, default: False")
-        parser.set_defaults(noconsole=False)
         cmdargs, unknown = parser.parse_known_args(sys.argv)
 
         if cmdargs.loglevel is not None:
@@ -44,12 +42,6 @@ class MacropadLauncher():
             self.log.setLevel(numeric_level)
 
         app = MacroPadApp(cmdargs)
-
-
-        if cmdargs.noconsole:
-            console_window = win32gui.FindWindow(None, self.appName)
-            # console_window = win32gui.GetForegroundWindow()
-            win32gui.ShowWindow(console_window , win32con.SW_HIDE)
 
         while self.isRunning:
             app.loop()

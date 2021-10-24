@@ -1,5 +1,4 @@
 # -*- mode: python ; coding: utf-8 -*-
-specpath = os.path.dirname(os.path.abspath(SPEC))
 
 block_cipher = None
 
@@ -32,7 +31,7 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True,
+          console=False,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
