@@ -13,6 +13,7 @@ class MacropadLauncher():
     def __init__(self) -> None:
         self.isRunning = True
         self.setupLogger()
+        self.appName =  "MacroPad Launcher"
 
     def setupLogger(self) -> None:
         self.log = logging.getLogger('')
@@ -46,7 +47,8 @@ class MacropadLauncher():
 
 
         if cmdargs.noconsole:
-            console_window = win32gui.GetForegroundWindow()
+            console_window = win32gui.FindWindow(None, self.appName)
+            # console_window = win32gui.GetForegroundWindow()
             win32gui.ShowWindow(console_window , win32con.SW_HIDE)
 
         while self.isRunning:

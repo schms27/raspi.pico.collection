@@ -47,6 +47,11 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameter
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s C:\ProgramData\MacroPadService" ;Flags: postinstall skipifsilent
 
+[UninstallRun]
+Filename: "taskkill"; Parameters: "/im ""{#MyAppExeName}"" /f"; Flags: runhidden
+Filename: "taskkill"; Parameters: "/im ""{#MyAppName}"" /f"; Flags: runhidden
+
+
 [Code]
 procedure InstallService;
 
