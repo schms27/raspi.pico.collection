@@ -8,7 +8,7 @@ class TestLayoutManager(unittest.TestCase):
 
     # @patch('layout_manager.LayoutManager')
     def setUp(self): 
-        settings = Settings('.pico.hid.service/tests/')
+        settings = Settings('./pico.hid.service/tests/')
         self.layout_manager = LayoutManager(settings)
 
     def test_swap_layout(self):
