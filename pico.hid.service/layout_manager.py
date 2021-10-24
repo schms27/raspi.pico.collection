@@ -11,8 +11,8 @@ class SwapDirection(Enum):
 class LayoutManager():
 
     def __init__(self, settings: Settings) -> None:
-        file = open(settings.getSetting('layouts_filepath'),)
-        self.layoutData = json.load(file)
+        with open(settings.getSetting('layouts_filepath'), 'r') as file:
+            self.layoutData = json.load(file)
         self.switchLayout(0)
 
     def swapLayout(self, direction: str) -> None:
