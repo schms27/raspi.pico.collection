@@ -22,7 +22,7 @@ class TestLayoutManager(unittest.TestCase):
     def test_get_action(self):
         action = self.layout_manager.getAction(Order.SHORT_PRESSED, 1)
         self.assertIsNotNone(action)
-        self.assertEqual(action['type'] == 'SOUND_MIXER')
+        self.assertEqual(action['type'], 'SOUND_MIXER')
        
 if __name__ == '__main__':
     unittest.main()
