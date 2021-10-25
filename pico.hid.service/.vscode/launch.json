@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args" : ["-s", "C:/ProgramData/MacroPadService/", "--log=INFO"]
+            "args" : ["-s", "C:/ProgramData/MacroPadService/", "--log=DEBUG"]
         }
     ]
 }

@@ -1,5 +1,6 @@
 import win32api
 import time
+from threading import Thread
 from enum import Enum
 import numpy as np
 from random import randint
@@ -17,7 +18,7 @@ class InputCommand(Enum):
 
 class InputManager():
     def __init__(self, calling_app = None):
-        self.keyboard = KeyboardController()
+        # self.keyboard = KeyboardController()
         self.mouse = MouseController()
         self.screen_width = win32api.GetSystemMetrics(0)
         self.screen_height = win32api.GetSystemMetrics(1) 
@@ -29,10 +30,19 @@ class InputManager():
         self.callingApp = calling_app
 
     def sendPaste(self):
-        self.keyboard.press(Key.ctrl.value)
-        self.keyboard.press('v')
-        self.keyboard.release('v')
-        self.keyboard.release(Key.ctrl.value)
+        t = Thread(target=self.sendKeys, args=(Key.ctrl.value, 'v'))
+        t.start()
+        # self.keyboard.press(Key.ctrl.value)
+        # self.keyboard.press('v')
+        # self.keyboard.release('v')
+        # self.keyboard.release(Key.ctrl.value)
+
+    def sendKeys(self, **keys):
+        keyboard = KeyboardController()
+        for key in keys:
+            keyboard.press(key)
+        for key in keys:
+            keyboard.release(key)
 
     def clear_clipboard(self):
         pyperclip.copy('')

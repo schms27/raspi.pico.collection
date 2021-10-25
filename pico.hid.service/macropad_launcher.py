@@ -3,8 +3,8 @@ import argparse
 import sys
 import os
 import logging
-import win32gui, win32con
-from logging import handlers
+from logging import handlers, debug
+from multiprocessing import Queue
 
 from app import MacroPadApp
 from tray_icon_app import TrayIconApp
@@ -25,7 +25,10 @@ class MacropadLauncher():
         ch.setFormatter(format)
         self.log.addHandler(ch)
 
-        fh = handlers.TimedRotatingFileHandler(os.path.join(os.getenv('LOCALAPPDATA'), "MacropadLauncher\\" "macropad.log"), when='midnight', backupCount=7)
+        logdir = os.path.join(os.getenv('LOCALAPPDATA'), "MacropadLauncher\\")
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        fh = handlers.TimedRotatingFileHandler(os.path.join(logdir, "macropad.log"), when='midnight', backupCount=7)
         fh.setFormatter(format)
         self.log.addHandler(fh)
 
@@ -42,16 +45,27 @@ class MacropadLauncher():
             numeric_level = getattr(logging, cmdargs.loglevel.upper(), None)
             self.log.setLevel(numeric_level)
 
-        app = MacroPadApp(cmdargs)
+        q = Queue()
 
-        trayApp = TrayIconApp()
+        app = MacroPadApp(cmdargs, q)
+        app.start()
+
+        trayApp = TrayIconApp(q, 12)
         trayApp.start()
 
-        while self.isRunning:
-            app.loop()
-            if not trayApp.is_alive():
-                self.isRunning = False
-            time.sleep(0.1)
+        trayApp.join()
+        while not q.empty():
+            debug(f"Result: {q.get()}")
+
+        while trayApp.is_alive():
+            pass
+        app.isRunning = False
+
+        # while self.isRunning:
+        #     app.loop()
+        #     if not trayApp.is_alive():
+        #         self.isRunning = False
+        #     time.sleep(0.1)
 
 if __name__ == '__main__':
     launcher = MacropadLauncher()

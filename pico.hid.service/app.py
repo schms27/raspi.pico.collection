@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import pyperclip
+from multiprocessing import Process
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from logging import debug, info, warning, error
 
@@ -14,25 +15,33 @@ from sound_mixer import SoundMixer, MixerCommand
 from program_executer import ProgramExecuter
 from util import fibonacci
 
-class MacroPadApp():
-    def __init__(self, arguments) -> None:
+class MacroPadApp(Process):
+    def __init__(self, arguments, queue) -> None:
+        super(MacroPadApp, self).__init__()
+        self.arguments = arguments
+        self.queue = queue
         self.isDeviceConnected = False
         self.isDeviceReady = False
         self.reconnectInterval = 1
         self.reconnectCounter = 0
         self.cycleCounter = 0
 
-        self.isRunningAsService = False
+        self.isRunning = True
 
-        self.settings = Settings(arguments.settingspath)
+        self.settings = Settings(self.arguments.settingspath)
         self.passwordManager = PasswordManager(self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.inputManager = InputManager(self)
         self.soundMixer = SoundMixer(self.settings)
         self.exec = ProgramExecuter()
 
-        if arguments.password is not None:
-            self.passwordManager.prepare_passwordfile(arguments.password)
+        if self.arguments.password is not None:
+            self.passwordManager.prepare_passwordfile(self.arguments.password)
+
+    def run(self):
+        self.queue.put("Process is called '{0}', arguments: '{1}'".format(self.name, self.arguments))
+        while self.isRunning:
+            self.loop()
 
     def connect(self):
         if self.cycleCounter % self.reconnectInterval != 0:

@@ -16,10 +16,14 @@ class SystemTrayIcon(QSystemTrayIcon):
         QApplication.exit(0)
 
 class TrayIconApp(Process):
-    def __init__(self):
+    def __init__(self, queue, idx, **kwargs):
         super(TrayIconApp, self).__init__()
+        self.queue = queue
+        self.idx = idx
+        self.kwargs = kwargs
 
     def run(self):
+        self.queue.put("Process idx={0} is called '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv))
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app.setWindowIcon(QIcon("./dist/makro_icon.ico"))
@@ -36,4 +40,5 @@ class TrayIconApp(Process):
         sys.exit(app.exec())
 
     def onTrayIconActivated(self, reason):
-        self.window.show()
+        pass
+        # self.window.show()
