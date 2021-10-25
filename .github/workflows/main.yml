@@ -57,9 +57,11 @@ jobs:
         name: hid.service
         path: pico.hid.service/dist/windows
 
-    - uses: dlemstra/code-sign-action@v1
+    - uses: Dana-Prajea/code-sign-action@v4
       with:
         certificate: '${{ secrets.CERTIFICATE }}'
+        password: '${{ secrets.CERT_PASSWORD }}'
+        certificatename: '${{ secrets.CERTNAME }}'
         folder: 'pico.hid.service/dist/windows'
         recursive: true
 
