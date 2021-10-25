@@ -57,7 +57,7 @@ jobs:
         name: hid.service
         path: pico.hid.service/dist/windows
 
-    - uses: Dana-Prajea/code-sign-action@v4
+    - uses: DanaBear/code-sign-action@v4
       with:
         certificate: '${{ secrets.CERTIFICATE }}'
         password: '${{ secrets.CERT_PASSWORD }}'
