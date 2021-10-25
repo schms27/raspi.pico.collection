@@ -65,7 +65,7 @@ jobs:
 
     - name: Code Sign
       run: |
-        & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22000.0/x86/signtool.exe' sign /f certificate\certificate.pfx /p '${{ secrets.CERT_PASSWORD }}' pico.hid.service/dist/windows/macropad_launcher.exe
+        & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22000.0/x86/signtool.exe' sign /fd SHA256 /f certificate\certificate.pfx /p '${{ secrets.CERT_PASSWORD }}' pico.hid.service/dist/windows/macropad_launcher.exe
         dir "C:/Program Files (x86)/Windows Kits/10/bin/"
 
     - uses: actions/upload-artifact@v2
