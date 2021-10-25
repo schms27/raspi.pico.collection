@@ -58,10 +58,10 @@ jobs:
         path: pico.hid.service/dist/windows
 
     - name: Create Code Signing Certificate
-        run: |
-          New-Item -ItemType directory -Path certificate
-          Set-Content -Path certificate\certificate.txt -Value '${{ secrets.CERTIFICATE }}'
-          certutil -decode certificate\certificate.txt certificate\certificate.pfx
+      run: |
+        New-Item -ItemType directory -Path certificate
+        Set-Content -Path certificate\certificate.txt -Value '${{ secrets.CERTIFICATE }}'
+        certutil -decode certificate\certificate.txt certificate\certificate.pfx
 
     - name: Code Sign
       run: |
