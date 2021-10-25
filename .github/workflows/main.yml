@@ -64,6 +64,10 @@ jobs:
         folder: 'pico.hid.service/dist/windows'
         recursive: true
 
+    - run: |
+        dir "C:/Program Files (x86)/Windows Kits/10/bin/"
+
+
     - uses: actions/upload-artifact@v2
       with:
         name: temp.pfx
