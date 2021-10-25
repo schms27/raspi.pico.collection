@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="icons">
+        <file alias="makro_icon.ico">./resources/makro_icon.ico</file>
+    </qresource>
+</RCC>

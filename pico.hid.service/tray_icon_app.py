@@ -3,6 +3,8 @@ from multiprocessing import Process
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
 
+import resources
+
 class SystemTrayIcon(QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
@@ -26,15 +28,15 @@ class TrayIconApp(Process):
         self.queue.put("Process idx={0} is called '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv))
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
-        app.setWindowIcon(QIcon("./dist/makro_icon.ico"))
+        app.setWindowIcon(QIcon(':/icons/makro_icon.ico'))
 
         self.window = QWidget()
-        trayIcon = SystemTrayIcon(QIcon("./dist/makro_icon.ico"), self.window)
+        trayIcon = SystemTrayIcon(QIcon(':/icons/makro_icon.ico'), self.window)
         trayIcon.activated.connect(self.onTrayIconActivated)
         trayIcon.show()
         self.window.resize(250, 200)
         self.window.move(300, 300)
-
+        self.window.show()
         self.window.setWindowTitle('Simple')
 
         sys.exit(app.exec())

@@ -11,7 +11,7 @@ block_cipher = None
 a = Analysis(['macropad_launcher.py'],
              pathex=['C:\\Users\\Simu\\Projects\\raspi.pico.collection\\pico.hid.service'],
              binaries=[],
-             datas=[],
+             datas=[('.\\dist\\makro_icon.ico', '.')],
              hiddenimports=['win32timezone','pynput.keyboard._win32', 'pynput.mouse._win32', 'PyQt5'],
              hookspath=[],
              runtime_hooks=[],
@@ -42,12 +42,20 @@ exe = EXE(pyz,
           codesign_identity=None,
           entitlements_file=None,
           icon='.\dist\makro_icon.ico' )
+#coll = COLLECT(exe,
+#               a.binaries,
+#               a.zipfiles,
+#               a.datas, 
+#               strip=False,
+#               upx=True,
+#               upx_exclude=[],
+#               name='macropad_launcher')
 
 # Code-sign the generated executable
-subprocess.call([
-   path_to_signtool_exe,
-   "sign",
-   "/A",
-   "/T", "http://timestamp.digicert.com",
-   '.\pico.hid.service\dist\macropad_launcher.exe',
-], shell=True)
+# subprocess.call([
+#   path_to_signtool_exe,
+#   "sign",
+#   "/A",
+#   "/T", "http://timestamp.digicert.com",
+#   '.\pico.hid.service\dist\macropad_launcher.exe',
+#], shell=True)

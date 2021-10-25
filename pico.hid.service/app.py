@@ -12,7 +12,6 @@ from input_manager import InputManager
 from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
-from program_executer import ProgramExecuter
 from util import fibonacci
 
 class MacroPadApp(Process):
@@ -28,15 +27,14 @@ class MacroPadApp(Process):
 
         self.isRunning = True
 
-        self.settings = Settings(self.arguments.settingspath)
+        self.settings = Settings(self.arguments['settingspath'])
         self.passwordManager = PasswordManager(self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.inputManager = InputManager(self)
         self.soundMixer = SoundMixer(self.settings)
-        self.exec = ProgramExecuter()
 
-        if self.arguments.password is not None:
-            self.passwordManager.prepare_passwordfile(self.arguments.password)
+        if self.arguments["password"] is not None:
+            self.passwordManager.prepare_passwordfile(self.arguments['password'])
 
     def run(self):
         self.queue.put("Process is called '{0}', arguments: '{1}'".format(self.name, self.arguments))
@@ -90,20 +88,7 @@ class MacroPadApp(Process):
             self.connect()
 
     def run_program(self, path) -> None:
-        if self.isRunningAsService:
-            domainName = "desktop-kn035je" 
-            userName = "simu"
-            password = "c-mu1337" 
-            maxWaitMs = 60000
-            path = "C:/Program Files/Mozilla Firefox/firefox.exe"
-            try:
-                self.exec.runAsDomainUser(domainName, userName, password, path, maxWaitMs)
-            except Exception as e:
-                error(f"Error occured during exec: {e}")
-        else:
-            subprocess.Popen(path)
-
-
+        subprocess.Popen(path)
 
     # ---------------- MOVE TO MESSAGE BUILDER CLASS ------------------
     def build_message(self, command, *args) -> str:

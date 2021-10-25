@@ -4,6 +4,7 @@ import sys
 import os
 import logging
 from logging import handlers, debug
+import multiprocessing
 from multiprocessing import Queue
 
 from app import MacroPadApp
@@ -40,14 +41,14 @@ class MacropadLauncher():
         parser.add_argument('-s', '--settings_path', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
         parser.add_argument('-l', '--log', type=str, nargs='?', action='store',dest='loglevel',help="desired loglevel")
         cmdargs, unknown = parser.parse_known_args(sys.argv)
-
+        debug(f"Launching using cmd-args: {cmdargs}")
         if cmdargs.loglevel is not None:
             numeric_level = getattr(logging, cmdargs.loglevel.upper(), None)
             self.log.setLevel(numeric_level)
 
         q = Queue()
 
-        app = MacroPadApp(cmdargs, q)
+        app = MacroPadApp(vars(cmdargs), q)
         app.start()
 
         trayApp = TrayIconApp(q, 12)
@@ -61,6 +62,8 @@ class MacropadLauncher():
             pass
         app.isRunning = False
 
+
+
         # while self.isRunning:
         #     app.loop()
         #     if not trayApp.is_alive():
@@ -68,5 +71,8 @@ class MacropadLauncher():
         #     time.sleep(0.1)
 
 if __name__ == '__main__':
+    if sys.platform.startswith('win'):
+        # On Windows calling this function is necessary.
+        multiprocessing.freeze_support()
     launcher = MacropadLauncher()
     launcher.main()
