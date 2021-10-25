@@ -57,21 +57,21 @@ jobs:
         name: hid.service
         path: pico.hid.service/dist/windows
 
-    - uses: DanaBear/code-sign-action@v4
-      with:
-        certificate: '${{ secrets.CERTIFICATE }}'
-        password: '${{ secrets.CERT_PASSWORD }}'
-        folder: 'pico.hid.service/dist/windows'
-        recursive: true
+    - name: Create Code Signing Certificate
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate\certificate.txt -Value '${{ secrets.CERTIFICATE }}'
+          certutil -decode certificate\certificate.txt certificate\certificate.pfx
 
-    - run: |
+    - name: Code Sign
+      run: |
+        & 'C:/Program Files (x86)/Windows Kits/10/bin/10.0.22000.0/x86/signtool.exe' sign /f certificate\certificate.pfx /p '${{ secrets.CERT_PASSWORD }}' pico.hid.service/dist/windows/macropad_launcher.exe
         dir "C:/Program Files (x86)/Windows Kits/10/bin/"
-
 
     - uses: actions/upload-artifact@v2
       with:
-        name: temp.pfx
-        path: 'C:\Users\RUNNER~1\AppData\Local\Temp\certificate.pfx'
+        name: hid.service
+        path: pico.hid.service/dist/windows
 
   build-installer:
     needs: sign-executable
