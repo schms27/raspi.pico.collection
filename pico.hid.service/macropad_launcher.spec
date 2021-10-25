@@ -1,7 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
+import subprocess
+
+
+# the following full path to signtool probably must be changed if
+# the signing of the executabel fails
+path_to_signtool_exe = "C:/Program Files (x86)/Windows Kits/10/bin/10.0.19041.0/x86/signtool.exe"
 
 block_cipher = None
-
 
 a = Analysis(['macropad_launcher.py'],
              pathex=['C:\\Users\\Simu\\Projects\\raspi.pico.collection\\pico.hid.service'],
@@ -37,3 +42,12 @@ exe = EXE(pyz,
           codesign_identity=None,
           entitlements_file=None,
           icon='.\dist\makro_icon.ico' )
+
+# Code-sign the generated executable
+subprocess.call([
+   path_to_signtool_exe,
+   "sign",
+   "/A",
+   "/T", "http://timestamp.digicert.com",
+   '.\pico.hid.service\dist\macropad_launcher.exe',
+], shell=True)

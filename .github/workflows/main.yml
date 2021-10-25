@@ -46,8 +46,25 @@ jobs:
         name: hid.service
         path: pico.hid.service/dist/windows
 
-  build-installer:
+  sign-executable:
     needs: build
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: hid.service
+        path: pico.hid.service/dist/windows
+
+    - uses: dlemstra/code-sign-action@v1
+      with:
+        certificate: '${{ secrets.CERTIFICATE }}'
+        folder: 'pico.hid.service/dist/windows'
+        recursive: true
+
+  build-installer:
+    needs: sign-executable
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
