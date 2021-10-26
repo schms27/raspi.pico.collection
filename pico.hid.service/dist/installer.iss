@@ -36,6 +36,7 @@ Name: "startup"; Description: "Automatically start on login"; GroupDescription: 
 [Files]
 Source: "windows/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "appdata/*"; DestDir: "{autoappdata}\MacroPadService\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
+Source: "JSONConfig.dll"; Flags: dontcopy
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -53,6 +54,9 @@ Filename: "taskkill"; Parameters: "/im ""{#MyAppName}"" /f"; Flags: runhidden
 
 
 [Code]
+function JSONWriteString(FileName, Section, Key, 
+  Value: WideString): Boolean;
+  external 'JSONWriteString@files:jsonconfig.dll stdcall';
 procedure InstallService;
 
 var
@@ -90,23 +94,29 @@ begin
   GetPasswordForServiceAndInstall();
 end;
 
-//   procedure CurStepChanged(CurStep: TSetupStep);
-//   begin
-//     if CurStep = ssPostInstall then
-//     begin
-//       //Read custom value
-//       Password := CustomQueryPage.Values[0];
-//       MsgBox(Password, mbInformation, MB_OK);
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  FileName: WideString;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    FileName := GetEnv('PROGRAMDATA') + '\MacroPadService\settings.json';
+    if not JSONWriteString(FileName, '', 'Key_1', 'New string value 1!') then
+      MsgBox('JSONWriteString Section_1:Key_1 failed!', mbError, MB_OK);
 
-//       MsgBox(ExpandConstant('{app}\{#MyAppExeName}') + ' install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, mbInformation, MB_OK);
-//       // Install Service and wait for it to terminate
-//       if not Exec(ExpandConstant('{app}\{#MyAppExeName}'), 'install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, '', SW_SHOWNORMAL,
-//        ewWaitUntilTerminated, ResultCode) then
-//         begin
-//           MsgBox('Failed to install Service!' + #13#10 +
-//             SysErrorMessage(ResultCode), mbError, MB_OK);
-//         end;
-//     end;
-//   end;
+    //Read custom value
+    //Password := CustomQueryPage.Values[0];
+    //MsgBox(Password, mbInformation, MB_OK);
+
+    //MsgBox(ExpandConstant('{app}\{#MyAppExeName}') + ' install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, mbInformation, MB_OK);
+    // Install Service and wait for it to terminate
+    //if not Exec(ExpandConstant('{app}\{#MyAppExeName}'), 'install -s ' + ExpandConstant('{autoappdata}\MacroPadService\') +' -p ' + Password, '', SW_SHOWNORMAL,
+    // ewWaitUntilTerminated, ResultCode) then
+    //  begin
+    //    MsgBox('Failed to install Service!' + #13#10 +
+    //      SysErrorMessage(ResultCode), mbError, MB_OK);
+    //  end;
+  end;
+end;
 
 
