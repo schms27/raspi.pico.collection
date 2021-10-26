@@ -29,15 +29,16 @@ class InputManager():
         self.timestep = 100 #refresh every 100 millis
         self.callingApp = calling_app
 
-    def sendPaste(self):
+    def sendPaste(self) -> Thread:
         t = Thread(target=self.sendKeys, args=(Key.ctrl.value, 'v'))
         t.start()
+        return t
         # self.keyboard.press(Key.ctrl.value)
         # self.keyboard.press('v')
         # self.keyboard.release('v')
         # self.keyboard.release(Key.ctrl.value)
 
-    def sendKeys(self, **keys):
+    def sendKeys(self, *keys):
         keyboard = KeyboardController()
         for key in keys:
             keyboard.press(key)

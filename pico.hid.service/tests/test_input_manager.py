@@ -38,8 +38,8 @@ class TestInputManager(unittest.TestCase):
         listener.start()  # start to listen on a separate thread
 
         self.input_manager.clear_clipboard()
-        self.input_manager.sendPaste()
-
+        thread = self.input_manager.sendPaste()
+        thread.join()
         time.sleep(1)
         self.assertTrue(self.last_pressed_keys[0].name == "ctrl_l")
         self.assertTrue(chr(self.last_pressed_keys[1].vk) == 'V')
