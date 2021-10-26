@@ -4,7 +4,6 @@ import win32gui
 import win32con 
 import win32com.client
 from enum import Enum
-from typing import Callable
 import sounddevice as sd
 from scipy.io.wavfile import read
 import requests
@@ -36,11 +35,15 @@ class SoundMixer():
         self.IsMuted = False
         self.IsSoundMuted = False
         self.prev_volume = 20 # default 'not-muted' volume
+        self.output_volume = 0.1
 
-        print(sd.query_devices())
-        playbackDevice = settings.getSetting("sound_playback_device")
-        if playbackDevice != "default":
-            sd.default.device = next(x for x in sd.query_devices() if playbackDevice in x['name'] and x['hostapi'] == 0)['name']
+    def setup_sound_device(self, playbackDeviceName: str) -> None:
+        debug(sd.query_devices())
+        if playbackDeviceName != "default":
+            for idx, elem in enumerate(sd.query_devices()):
+                if playbackDeviceName.lower() in elem['name'].lower():
+                    sd.default.device = idx
+                    break
 
     def send_input_hax(self, hwnd, msg):
         for c in msg:
@@ -74,7 +77,7 @@ class SoundMixer():
                 return False
             
             array = np.array(a[1], dtype=int)
-            scaled =np.int16(array/np.max(np.abs(array)) * 32767)
+            scaled =np.int16(array/np.max(np.abs(array)) * int(32767 * self.output_volume))
             try: 
                 sd.play(scaled, a[0])
                 sd.wait()

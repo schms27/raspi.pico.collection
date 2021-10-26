@@ -37,6 +37,7 @@ class MacroPadApp(Process):
             self.passwordManager.prepare_passwordfile(self.arguments['password'])
 
     def run(self):
+        self.soundMixer.setup_sound_device(self.settings.getSetting("sound_playback_device"))
         self.queue.put("Process is called '{0}', arguments: '{1}'".format(self.name, self.arguments))
         while self.isRunning:
             self.loop()
