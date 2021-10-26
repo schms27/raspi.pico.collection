@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import pyperclip
+import setproctitle
 from multiprocessing import Process
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from logging import debug, info, warning, error
@@ -17,6 +18,7 @@ from util import fibonacci
 class MacroPadApp(Process):
     def __init__(self, arguments, queue) -> None:
         super(MacroPadApp, self).__init__()
+        setproctitle.setproctitle("MacroPad-Background")
         self.arguments = arguments
         self.queue = queue
         self.isDeviceConnected = False

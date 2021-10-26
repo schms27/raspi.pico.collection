@@ -9,3 +9,4 @@ cryptography
 pynput
 coverage
 PyQt5
+setproctitle

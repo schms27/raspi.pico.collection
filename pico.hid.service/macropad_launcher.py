@@ -5,6 +5,7 @@ import os
 import logging
 from logging import handlers, debug
 import multiprocessing
+import setproctitle
 from multiprocessing import Queue
 
 from app import MacroPadApp
@@ -35,6 +36,7 @@ class MacropadLauncher():
 
 
     def main(self):
+        setproctitle.setproctitle(self.appName)
         parser = argparse.ArgumentParser()
         parser.add_argument('servicename', type=str, nargs='?')
         parser.add_argument('-p', '--password', type=str, nargs='?', action='store',dest='password',help="Password to unlock file with sensitive data")

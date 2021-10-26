@@ -1,4 +1,5 @@
 import sys
+import setproctitle
 from multiprocessing import Process
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
@@ -9,6 +10,7 @@ class SystemTrayIcon(QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
         QSystemTrayIcon.__init__(self, icon, parent)
+        setproctitle.setproctitle("MacroPad-TrayIcon")
         menu = QMenu(parent)
         self.exit_action = menu.addAction("Quit")
         self.exit_action.triggered.connect(self.slot_exit)
