@@ -1,4 +1,5 @@
-
+import os
+from numpy import log as ln
 
 fibonacci = lambda n:pow(2<<n,n+1,(4<<2*n)-(2<<n)-1)%(2<<n)
 
@@ -16,3 +17,14 @@ def findKClosestElements(nums, k, target):
             right = right - 1
  
     return nums[left:left + k]
+
+def calculateNextReconnectInterval(counter: int, currentInterval: float) -> float:
+    return max(currentInterval + ln(counter), currentInterval)
+
+def resolvePath(pathRaw: str) -> str:
+    variable = pathRaw.split('<',1)[-1].split('>',1)[0]
+    if variable != pathRaw:
+        expandedVar = os.getenv(variable)
+        if expandedVar is not None:
+            return pathRaw.replace(f"<{variable}>", expandedVar)
+    return pathRaw

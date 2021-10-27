@@ -13,7 +13,8 @@ from input_manager import InputManager
 from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
-from util import fibonacci
+from time_journal import TimeJournal
+from util import fibonacci, calculateNextReconnectInterval
 
 class MacroPadApp(Process):
     def __init__(self, arguments, queue) -> None:
@@ -34,6 +35,7 @@ class MacroPadApp(Process):
         self.layoutManager = LayoutManager(self.settings)
         self.inputManager = InputManager(self)
         self.soundMixer = SoundMixer(self.settings)
+        self.timeJournal = TimeJournal(self.settings)
 
         if self.arguments["password"] is not None:
             self.passwordManager.prepare_passwordfile(self.arguments['password'])
@@ -43,9 +45,10 @@ class MacroPadApp(Process):
         self.queue.put("Process is called '{0}', arguments: '{1}'".format(self.name, self.arguments))
         while self.isRunning:
             self.loop()
+            time.sleep(0.1)
 
     def connect(self):
-        if self.cycleCounter % self.reconnectInterval != 0:
+        if self.cycleCounter % int(round(self.reconnectInterval)) != 0:
             return
         serialPort = self.settings.getSetting('device_com_port')
         self.reconnectCounter += 1
@@ -73,7 +76,7 @@ class MacroPadApp(Process):
             self.reconnectInterval = 1
             info(f"Successfully connected to device on port '{serialPort}'")
             return
-        self.reconnectInterval += fibonacci(self.reconnectCounter)
+        self.reconnectInterval = calculateNextReconnectInterval(self.reconnectCounter, self.reconnectInterval)
         self.isDeviceConnected = False
         self.isDeviceReady = False
         self.cycleCounter = 0
@@ -183,6 +186,9 @@ class MacroPadApp(Process):
             self.inputManager.sendPaste()
         elif action['type'] == Action.INPUT.name:
             self.inputManager.execCommand(action, key)
+        elif action['type'] == Action.TIME_JOURNAL.name:
+            self.timeJournal.execCommand(action, key)
+            
 
     def parseCommand(self, command) -> Order:
         return Order(int(command, 0))

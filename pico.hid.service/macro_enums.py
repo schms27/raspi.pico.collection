@@ -23,6 +23,7 @@ class Action(Enum):
     PLAY_SOUND = 3
     PASTE_SENSITIVE_INFORMATION = 4
     INPUT = 5
+    TIME_JOURNAL = 6
 
 class Color(Enum):
     RED = '0xff0000'

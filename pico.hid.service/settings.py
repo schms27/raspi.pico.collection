@@ -8,3 +8,6 @@ class Settings():
 
     def getSetting(self, key):
         return self.settingsData[key]
+
+    def hasSetting(self, key):
+        return key in self.settingsData

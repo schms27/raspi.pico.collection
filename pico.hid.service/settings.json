@@ -1,5 +1,6 @@
 {
     "device_com_port":"COM7",
     "sound_playback_device":"default",
-    "password_filepath":"C:\\Users\\simon.schmid\\AppData\\Roaming\\MacroPad\\"
+    "password_filepath":"C:\\Users\\simon.schmid\\AppData\\Roaming\\MacroPad\\",
+    "time_journal_filepath":"C:\\Users\\simon.schmid\\AppData\\Roaming\\MacroPad\\timejournal.csv"
 }
