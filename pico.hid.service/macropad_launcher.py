@@ -1,15 +1,18 @@
+from multiprocessing.context import Process
 import time
 import argparse
 import sys
 import os
 import logging
+import signal
 from logging import handlers, debug
 import multiprocessing
 import setproctitle
-from multiprocessing import Queue
+from multiprocessing import Event, JoinableQueue
 
 from app import MacroPadApp
 from tray_icon_app import TrayIconApp
+from macro_enums import InterProcessCommunication
 
 class MacropadLauncher():
 
@@ -34,6 +37,14 @@ class MacropadLauncher():
         fh.setFormatter(format)
         self.log.addHandler(fh)
 
+    def restartBackgroundApp(event: Event, bg_proc_pid: int):
+        debug("waiting for restarting event")
+        event.wait()
+        debug("now i should restart background process")
+        os.kill(bg_proc_pid, signal.SIGTERM)
+        # self.background_app.terminate()
+        # self.background_app = MacroPadApp(vars(self.cmdargs), self.q)
+        # self.background_app.start()
 
     def main(self):
         setproctitle.setproctitle(self.appName)
@@ -42,27 +53,37 @@ class MacropadLauncher():
         parser.add_argument('-p', '--password', type=str, nargs='?', action='store',dest='password',help="Password to unlock file with sensitive data")
         parser.add_argument('-s', '--settings_path', type=str, nargs='?', action='store',dest='settingspath',help="Path to where the settings.json is located")
         parser.add_argument('-l', '--log', type=str, nargs='?', action='store',dest='loglevel',help="desired loglevel")
-        cmdargs, unknown = parser.parse_known_args(sys.argv)
-        debug(f"Launching using cmd-args: {cmdargs}")
-        if cmdargs.loglevel is not None:
-            numeric_level = getattr(logging, cmdargs.loglevel.upper(), None)
+        self.cmdargs, unknown = parser.parse_known_args(sys.argv)
+        debug(f"Launching using cmd-args: {self.cmdargs}")
+        if self.cmdargs.loglevel is not None:
+            numeric_level = getattr(logging, self.cmdargs.loglevel.upper(), None)
             self.log.setLevel(numeric_level)
 
-        q = Queue()
+        self.q = JoinableQueue()
 
-        app = MacroPadApp(vars(cmdargs), q)
-        app.start()
+        restart_background_process_e = Event()
 
-        trayApp = TrayIconApp(q, 12)
+        self.background_app = MacroPadApp(vars(self.cmdargs), self.q)
+        self.background_app.start()
+        self.background_app_pid = self.background_app.pid
+
+        restartBackgroundProcess = Process( name='restartbackground',
+                                            target=MacropadLauncher.restartBackgroundApp,
+                                            args=(restart_background_process_e,self.background_app_pid))
+        restartBackgroundProcess.start()
+
+        trayApp = TrayIconApp(self.q, 12, bg_restart_event=restart_background_process_e)
         trayApp.start()
 
-        trayApp.join()
-        while not q.empty():
-            debug(f"Result: {q.get()}")
 
+
+        while not self.q.empty():
+            debug(f"Result: {self.q.get()}")
+
+        trayApp.join()
         while trayApp.is_alive():
             pass
-        app.isRunning = False
+        self.background_app.isRunning = False
 
 
 

@@ -25,6 +25,11 @@ class Action(Enum):
     INPUT = 5
     TIME_JOURNAL = 6
 
+class InterProcessCommunication(Enum):
+    RESTART_BACKGROUND_SERVICE = 0
+    RESTART_TRAY_ICON = 1
+    PROCESS_INFO = 2
+
 class Color(Enum):
     RED = '0xff0000'
     GREEN = '0x00ff00'
