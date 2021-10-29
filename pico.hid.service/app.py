@@ -1,4 +1,4 @@
-import os
+import sys
 import time
 import subprocess
 import pyperclip
@@ -7,21 +7,24 @@ from multiprocessing import Process
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from logging import debug, info, warning, error
 
-from macro_enums import Order, Action, Color
+from macro_enums import Order, Action, Color, InterProcessCommunication
 from settings import Settings
 from input_manager import InputManager
 from layout_manager import LayoutManager
 from password_manager import PasswordManager
 from sound_mixer import SoundMixer, MixerCommand
 from time_journal import TimeJournal
-from util import fibonacci, calculateNextReconnectInterval
+from util import calculateNextReconnectInterval
 
 class MacroPadApp(Process):
-    def __init__(self, arguments, queue) -> None:
+    def __init__(self, arguments, queues, idx, **kwargs) -> None:
         super(MacroPadApp, self).__init__()
         setproctitle.setproctitle("MacroPad-Background")
         self.arguments = arguments
-        self.queue = queue
+        self.queues = queues
+        self.idx = idx
+        self.kwargs = kwargs
+
         self.isDeviceConnected = False
         self.isDeviceReady = False
         self.reconnectInterval = 1
@@ -42,9 +45,10 @@ class MacroPadApp(Process):
 
     def run(self):
         self.soundMixer.setup_sound_device(self.settings.getSetting("sound_playback_device"))
-        self.queue.put("Process is called '{0}', arguments: '{1}'".format(self.name, self.arguments))
+        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO,"Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
         while self.isRunning:
             self.loop()
+            self.processQueueMessages()
             time.sleep(0.1)
 
     def connect(self):
@@ -80,6 +84,12 @@ class MacroPadApp(Process):
         self.isDeviceConnected = False
         self.isDeviceReady = False
         self.cycleCounter = 0
+
+    def processQueueMessages(self):
+        if not self.queues['fromMain'].empty():
+            response = self.queues['fromMain'].get()
+            if response[0] == InterProcessCommunication.REQUEST_RESTART_MACROPAD:
+                self.sendRestartRequest()
 
     def readSerial(self) -> None:
         try:
@@ -130,6 +140,10 @@ class MacroPadApp(Process):
         keycolors = self.layoutManager.getBaseColors()
         self.set_multi_color(keycolors)
     # ---------------- END: MOVE TO COLOR? CLASS ------------------
+
+    def sendRestartRequest(self):
+        reply = self.build_message(Order.RESTART_BOARD.value)
+        self.send_message(bytes(reply, encoding='utf-8'))
 
     def exec_establish_connection(self, command):
         if command == Order.HELLO:

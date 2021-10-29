@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>621</width>
-    <height>600</height>
+    <width>650</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,12 +51,22 @@
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Password - Sensitive Data</string>
+            <string>Password (Unlock Sensitive Data)</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLineEdit" name="password_lineEdit"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Sound Device (Soundboard Playback)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="sound_device_comboBox"/>
          </item>
          <item>
           <spacer name="verticalSpacer">
@@ -95,12 +105,18 @@
          <item>
           <widget class="QPushButton" name="reset_pushButton">
            <property name="text">
-            <string>Reset</string>
+            <string>Reset Device</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="save_pushButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Save</string>
            </property>
@@ -134,7 +150,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>621</width>
+     <width>650</width>
      <height>31</height>
     </rect>
    </property>

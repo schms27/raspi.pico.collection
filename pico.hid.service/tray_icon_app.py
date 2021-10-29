@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
 
 from ui.main_window import MainConfigWindow
 from macro_enums import InterProcessCommunication
+from settings import Settings
 import resources
 
 WINDOW_TITLE = "MacroPad Configuration"
@@ -25,23 +26,25 @@ class SystemTrayIcon(QSystemTrayIcon):
         QApplication.exit(0)
 
 class TrayIconApp(Process):
-    def __init__(self, queue, idx, **kwargs):
+    def __init__(self, arguments, queues, idx, **kwargs):
         super(TrayIconApp, self).__init__()
-        self.queue = queue
+        self.queues = queues
         self.idx = idx
         self.kwargs = kwargs
 
+        self.settings = Settings(arguments['settingspath'])
+ 
     def run(self):
-        self.queue.put((InterProcessCommunication.PROCESS_INFO,"Process idx={0} is called '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv)))
+        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO,"Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app.setWindowIcon(QIcon(':/icons/makro_icon.ico'))
 
-        self.window = MainConfigWindow(kwargs=self.kwargs, queue=self.queue)
+        self.window = MainConfigWindow(settings=self.settings, kwargs=self.kwargs, queues=self.queues)
         trayIcon = SystemTrayIcon(QIcon(':/icons/makro_icon.ico'), self.window)
         trayIcon.activated.connect(self.onTrayIconActivated)
         trayIcon.show()
-        self.window.resize(500, 400)
+        self.window.resize(650, 620)
         self.window.move(300, 300)
         self.window.setWindowTitle(WINDOW_TITLE)
 

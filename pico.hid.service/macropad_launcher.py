@@ -5,10 +5,10 @@ import sys
 import os
 import logging
 import signal
-from logging import handlers, debug
+from logging import handlers, debug, info
 import multiprocessing
 import setproctitle
-from multiprocessing import Event, JoinableQueue
+from multiprocessing import Queue
 
 from app import MacroPadApp
 from tray_icon_app import TrayIconApp
@@ -37,14 +37,17 @@ class MacropadLauncher():
         fh.setFormatter(format)
         self.log.addHandler(fh)
 
-    def restartBackgroundApp(event: Event, bg_proc_pid: int):
-        debug("waiting for restarting event")
-        event.wait()
-        debug("now i should restart background process")
-        os.kill(bg_proc_pid, signal.SIGTERM)
-        # self.background_app.terminate()
-        # self.background_app = MacroPadApp(vars(self.cmdargs), self.q)
-        # self.background_app.start()
+
+    def parseProcessCommunicationResponse(self, response):
+        if response[0] == InterProcessCommunication.PROCESS_INFO:
+            info(f"got response from process '{response[2]}': {response[1]}")
+        elif response[0] == InterProcessCommunication.RESTART_BACKGROUND_SERVICE:
+            debug(f"restarting background process requested by class '{response[1]}'")
+            self.background_app.kill()
+            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
+            self.background_app.start()
+            self.process_com_queues['fromMain'].put((InterProcessCommunication.REQUEST_RESTART_MACROPAD, "", self.__class__.__name__))
+
 
     def main(self):
         setproctitle.setproctitle(self.appName)
@@ -59,39 +62,24 @@ class MacropadLauncher():
             numeric_level = getattr(logging, self.cmdargs.loglevel.upper(), None)
             self.log.setLevel(numeric_level)
 
-        self.q = JoinableQueue()
+        self.process_com_queues = {"toMain":Queue(),"fromMain":Queue()}
 
-        restart_background_process_e = Event()
-
-        self.background_app = MacroPadApp(vars(self.cmdargs), self.q)
+        self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
         self.background_app.start()
-        self.background_app_pid = self.background_app.pid
 
-        restartBackgroundProcess = Process( name='restartbackground',
-                                            target=MacropadLauncher.restartBackgroundApp,
-                                            args=(restart_background_process_e,self.background_app_pid))
-        restartBackgroundProcess.start()
-
-        trayApp = TrayIconApp(self.q, 12, bg_restart_event=restart_background_process_e)
+        trayApp = TrayIconApp(vars(self.cmdargs), self.process_com_queues, 20)
         trayApp.start()
 
 
 
-        while not self.q.empty():
-            debug(f"Result: {self.q.get()}")
+        # while not self.q.empty():
+        #     debug(f"Result: {self.q.get()}")
 
-        trayApp.join()
+        # trayApp.join()
         while trayApp.is_alive():
-            pass
+            if not self.process_com_queues['toMain'].empty():
+                self.parseProcessCommunicationResponse(self.process_com_queues['toMain'].get())
         self.background_app.isRunning = False
-
-
-
-        # while self.isRunning:
-        #     app.loop()
-        #     if not trayApp.is_alive():
-        #         self.isRunning = False
-        #     time.sleep(0.1)
 
 if __name__ == '__main__':
     if sys.platform.startswith('win'):

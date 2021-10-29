@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import serial
+import sounddevice as sd
 from numpy import log as ln
 
 fibonacci = lambda n:pow(2<<n,n+1,(4<<2*n)-(2<<n)-1)%(2<<n)
@@ -61,3 +62,10 @@ def get_serial_ports():
                 result.append(port)
             pass
     return result
+
+def get_sound_device_names(hostapi = 0):
+    soundDevicesNames = ["default"]
+    for dev in sd.query_devices():
+        if dev['hostapi'] == hostapi:
+            soundDevicesNames.append(dev['name'])
+    return soundDevicesNames
