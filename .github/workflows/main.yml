@@ -11,6 +11,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
     - name: Install Python 3.8
       uses: actions/setup-python@v1
       with:
@@ -23,18 +25,20 @@ jobs:
       run: coverage run --source=${{ github.workspace }}\pico.hid.service -m unittest discover -s ${{ github.workspace }}\pico.hid.service
     - name: Generate code-coverage report
       run: coverage html
-    - name: Publish code coverage report
-      uses: EndBug/add-and-commit@v7
-      with:
-        add: 'docs/* --force'
-        message: 'Add generated code-coverage'
-      env:
-        GITHUB_TOKEN: $
+    # - name: Publish code coverage report
+    #  uses: EndBug/add-and-commit@v7
+    #  with:
+    #    add: 'docs/* --force'
+    #    message: 'Add generated code-coverage'
+    #  env:
+    #    GITHUB_TOKEN: $
 
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
 
     - name: Package Application
       uses: JackMcKew/pyinstaller-action-windows@main
@@ -51,6 +55,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
 
     - uses: actions/download-artifact@v2
       with:
