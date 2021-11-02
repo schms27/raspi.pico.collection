@@ -3,6 +3,7 @@ from enum import Enum
 from macro_enums import Order
 from settings import Settings
 from logging import debug
+from util import resolvePath
 
 class SwapDirection(Enum):
     FORWARD = 0
@@ -11,7 +12,7 @@ class SwapDirection(Enum):
 class LayoutManager():
 
     def __init__(self, settings: Settings) -> None:
-        with open(settings.getSetting('layouts_filepath'), 'r') as file:
+        with open(resolvePath(settings.getSetting('layouts_filepath')), 'r') as file:
             self.layoutData = json.load(file)
         self.switchLayout(0)
 

@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from settings import Settings
 from logging import debug, info, warning
+from util import resolvePath
 
 class PasswordManager:
     def __init__(self, settings: Settings) -> None:
@@ -16,7 +17,7 @@ class PasswordManager:
         return Fernet.generate_key()
 
     def prepare_passwordfile(self, password: str) -> None:
-        passwordpath = self.settings.getSetting('password_filepath')
+        passwordpath = resolvePath(self.settings.getSetting('password_filepath'))
         passwordfile_clear = "passwords.json"
         passwordfile_enc = "passwords.encrypted"
         if not os.path.isfile(os.path.join(passwordpath, passwordfile_enc)):
