@@ -1,7 +1,7 @@
 {
     "device_com_port":"COM7",
     "sound_playback_device":"default",
-    "password_filepath":"C:\\ProgramData\\MacroPadService\\",
-    "layouts_filepath":"C:\\ProgramData\\MacroPadService\\layouts.json",
+    "password_filepath":"<LOCALAPPDATA>\\MacropadLauncher\\",
+    "layouts_filepath":"<LOCALAPPDATA>\\MacropadLauncher\\layouts.json",
     "time_journal_filepath":"<LOCALAPPDATA>\\MacropadLauncher\\timejournal.csv"
 }

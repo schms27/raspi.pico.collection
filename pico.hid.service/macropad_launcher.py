@@ -5,7 +5,7 @@ import sys
 import os
 import logging
 import signal
-from logging import handlers, debug, info
+from logging import handlers, debug, info, error
 import multiprocessing
 import setproctitle
 from multiprocessing import Queue
@@ -64,11 +64,19 @@ class MacropadLauncher():
 
         self.process_com_queues = {"toMain":Queue(),"fromMain":Queue()}
 
-        self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
-        self.background_app.start()
+        try:
+            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
+            self.background_app.start()
+        except Exception as e:
+            error(f"Error occured while constructing '{MacroPadApp.__name__}',{e}")
+            return
 
-        trayApp = TrayIconApp(vars(self.cmdargs), self.process_com_queues, 20)
-        trayApp.start()
+        try:
+            trayApp = TrayIconApp(vars(self.cmdargs), self.process_com_queues, 20)
+            trayApp.start()
+        except Exception as e:
+            error(f"Error occured while constructing '{TrayIconApp.__name__}',{e}")
+            return
 
 
 

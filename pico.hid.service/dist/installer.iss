@@ -35,17 +35,17 @@ Name: "startup"; Description: "Automatically start on login"; GroupDescription: 
 
 [Files]
 Source: "windows/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "appdata/*"; DestDir: "{autoappdata}\{#MyAppName}\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
+Source: "appdata/*"; DestDir: "{localappdata}\{#MyAppName}\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {autoappdata}\{#MyAppName}"; Tasks: desktopicon; Flags: runminimized
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {autoappdata}\{#MyAppName}"; Tasks: startup; Flags: runminimized
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppName}"; Tasks: desktopicon; Flags: runminimized
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppName}"; Tasks: startup; Flags: runminimized
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s {autoappdata}\{#MyAppName}" ;Flags: postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s {localappdata}\{#MyAppName}" ;Flags: postinstall skipifsilent
 
 [UninstallRun]
 Filename: "taskkill"; Parameters: "/im ""{#MyAppExeName}"" /f"; Flags: runhidden

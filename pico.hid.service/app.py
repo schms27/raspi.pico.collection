@@ -34,12 +34,13 @@ class MacroPadApp(Process):
         self.isRunning = True
 
         self.settings = Settings(self.arguments['settingspath'])
+
         self.passwordManager = PasswordManager(self.settings)
         self.layoutManager = LayoutManager(self.settings)
         self.inputManager = InputManager(self)
         self.soundMixer = SoundMixer(self.settings)
         self.timeJournal = TimeJournal(self.settings)
-
+        
         if self.arguments["password"] is not None:
             self.passwordManager.prepare_passwordfile(self.arguments['password'])
 
