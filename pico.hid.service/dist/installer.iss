@@ -2,6 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MacroPad Launcher"
+#define MyAppPathName = "MacroPadLauncher"
 #define MyAppVersion "0.1"
 #define MyAppPublisher "Softy Inc."
 #define MyAppExeName "macropad_launcher.exe"
@@ -35,17 +36,17 @@ Name: "startup"; Description: "Automatically start on login"; GroupDescription: 
 
 [Files]
 Source: "windows/{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "appdata/*"; DestDir: "{localappdata}\{#MyAppName}\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
+Source: "appdata/*"; DestDir: "{localappdata}\{#MyAppPathName}\"; Flags: ignoreversion createallsubdirs recursesubdirs comparetimestamp
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppName}"; Tasks: desktopicon; Flags: runminimized
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppName}"; Tasks: startup; Flags: runminimized
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppPathName}"; Tasks: desktopicon; Flags: runminimized
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-s {localappdata}\{#MyAppPathName}"; Tasks: startup; Flags: runminimized
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s {localappdata}\{#MyAppName}" ;Flags: postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch application"; Parameters: "-s {localappdata}\{#MyAppPathName}" ;Flags: postinstall skipifsilent
 
 [UninstallRun]
 Filename: "taskkill"; Parameters: "/im ""{#MyAppExeName}"" /f"; Flags: runhidden
