@@ -3,6 +3,7 @@ import time
 import subprocess
 import pyperclip
 import setproctitle
+from random import randint
 from multiprocessing import Process
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from logging import debug, info, warning, error
@@ -40,7 +41,7 @@ class MacroPadApp(Process):
         self.inputManager = InputManager(self)
         self.soundMixer = SoundMixer(self.settings)
         self.timeJournal = TimeJournal(self.settings)
-        
+
         if self.arguments["password"] is not None:
             self.passwordManager.prepare_passwordfile(self.arguments['password'])
 
@@ -89,8 +90,16 @@ class MacroPadApp(Process):
     def processQueueMessages(self):
         if not self.queues['fromMain'].empty():
             response = self.queues['fromMain'].get()
+
+            if(response[2] == self.__class__.__name__):
+                self.queues['fromMain'].put(response)
+                time.sleep(randint(1,5))
+
             if response[0] == InterProcessCommunication.REQUEST_RESTART_MACROPAD:
                 self.sendRestartRequest()
+            elif response[0] == InterProcessCommunication.CHANGED_PASSWORD:
+                successful = self.passwordManager.prepare_passwordfile(response[1])
+                self.queues['fromMain'].put((InterProcessCommunication.CHANGED_PASSWORD_SUCCESSFUL, successful, self.__class__.__name__))
 
     def readSerial(self) -> None:
         try:

@@ -2,7 +2,7 @@ import json
 import os
 import base64
 from typing import Callable
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from settings import Settings
@@ -16,7 +16,7 @@ class PasswordManager:
     def generate_encryption_key(self):
         return Fernet.generate_key()
 
-    def prepare_passwordfile(self, password: str) -> None:
+    def prepare_passwordfile(self, password: str) -> bool:
         passwordpath = resolvePath(self.settings.getSetting('password_filepath'))
         passwordfile_clear = "passwords.json"
         passwordfile_enc = "passwords.encrypted"
@@ -25,10 +25,10 @@ class PasswordManager:
             passwordfile_clear = os.path.join(passwordpath, passwordfile_clear)
             if not os.path.isfile(passwordfile_clear):
                 warning( f"Passwordfile not found, expected at path '{passwordfile_clear}'")
-                return
+                return False
             self.encrypt_file(passwordfile_clear, password)
         debug("Decrypting passwordfile")
-        self.decrypt_file(os.path.join(passwordpath,passwordfile_enc), password)
+        return self.decrypt_file(os.path.join(passwordpath,passwordfile_enc), password)
 
     def encrypt_file(self, filepath, password):
         basepath = os.path.dirname(filepath)
@@ -52,7 +52,7 @@ class PasswordManager:
             os.remove(filepath)
             debug(f"Encrypted File '{filepath}' using key '{key}'")
 
-    def decrypt_file(self, filepath, password):
+    def decrypt_file(self, filepath, password) -> bool:
         basepath = os.path.dirname(filepath)
         with open(os.path.join(basepath, "salt"), "rb") as file:
             salt = file.read()
@@ -62,7 +62,12 @@ class PasswordManager:
                 # read the encrypted data
                 encrypted_data = file.read()
                 # decrypt data
-                self.decrypted_data = f.decrypt(encrypted_data)
+                try:
+                    self.decrypted_data = f.decrypt(encrypted_data)
+                except InvalidToken as e:
+                    info(f"Passwords did not match, maybe you are missing 'salt'-file?, exception: {e}")
+                    return False
+                return True
 
     def get_password(self, name):
         if hasattr(self, 'decrypted_data'):

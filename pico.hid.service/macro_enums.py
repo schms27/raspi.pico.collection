@@ -30,6 +30,8 @@ class InterProcessCommunication(Enum):
     RESTART_TRAY_ICON = 1
     PROCESS_INFO = 2
     REQUEST_RESTART_MACROPAD = 3
+    CHANGED_PASSWORD = 4
+    CHANGED_PASSWORD_SUCCESSFUL = 5
 
 class Color(Enum):
     RED = '0xff0000'

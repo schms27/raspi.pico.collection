@@ -1,4 +1,5 @@
 import sys
+from PyQt5.QtCore import QTimer
 import setproctitle
 from multiprocessing import Process
 from PyQt5.QtGui import QIcon
@@ -46,10 +47,27 @@ class TrayIconApp(Process):
         trayIcon.show()
         self.window.resize(650, 620)
         self.window.move(300, 300)
-        self.window.setWindowTitle(WINDOW_TITLE)
+        self.window.setWindowTitle(WINDOW_TITLE) 
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.processQueueMessages)
+        self.timer.start(1000)
 
         sys.exit(app.exec())
 
     def onTrayIconActivated(self, reason):
         if reason == QSystemTrayIcon.Trigger:
             self.window.show()
+
+    def processQueueMessages(self):
+        if not self.queues['fromMain'].empty():
+            response = self.queues['fromMain'].get()
+
+            if(response[2] == self.__class__.__name__):
+                self.queues['fromMain'].put(response)
+
+            if response[0] == InterProcessCommunication.CHANGED_PASSWORD_SUCCESSFUL:
+                wasSuccessful = response[1]
+                self.window.setPasswordChangedSuccessful(wasSuccessful)
+
+            

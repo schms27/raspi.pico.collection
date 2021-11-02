@@ -56,7 +56,18 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="password_lineEdit"/>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLineEdit" name="password_lineEdit"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_icon_password_set">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QLabel" name="label_3">
