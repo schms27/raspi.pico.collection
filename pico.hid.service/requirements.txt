@@ -12,3 +12,5 @@ PyQt5
 pyqt5-tools
 qtawesome
 setproctitle
+pyaudio
+pysndfx
