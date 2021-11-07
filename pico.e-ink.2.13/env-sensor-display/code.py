@@ -4,6 +4,7 @@ import displayio
 import adafruit_il0373
 import busio
 import terminalio
+import adafruit_ccs811
 from adafruit_display_text import label
 from adafruit_bme280 import basic as adafruit_bme280
 
@@ -17,7 +18,6 @@ BLACK = 0x000000
 WHITE = 0xFFFFFF
 RED = 0xFF0000
 COLORS = [BLACK, WHITE, RED]
-
 
 # Define the pins needed for display use
 # This pinout is for a Feather M4 and may be different for other boards
@@ -50,7 +50,8 @@ g = displayio.Group()
 
 # Create I2C
 i2c = busio.I2C(scl=board.GP1, sda=board.GP0)
-bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
+ccs =  adafruit_ccs811.CCS811(i2c)
 
 # Display a ruler graphic from the root directory of the CIRCUITPY drive
 with open("/display-ruler.bmp", "rb") as f:
@@ -84,6 +85,8 @@ while True:
     altitude = bme280.altitude
     print(f"Temp {temperature}, rel. Hum {relative_humidity}, pressure {pressure}, altitude {altitude}")
 
+    print(f"CO2: {ccs.eco2}, TVOC: {ccs.tvoc}")
+    
     # Set a background
     background_bitmap = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
     # Map colors in a palette

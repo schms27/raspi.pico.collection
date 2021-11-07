@@ -364,10 +364,10 @@ class Adafruit_BME280_I2C(Adafruit_BME280):
 
     def __init__(self, i2c, address=0x77):  # BME280_ADDRESS
         from adafruit_bus_device.i2c_device import (  # pylint: disable=import-outside-toplevel
-            i2c_device,
+            I2CDevice,
         )
 
-        self._i2c = i2c_device.I2CDevice(i2c, address)
+        self._i2c = I2CDevice(i2c, address)
         super().__init__()
 
     def _read_register(self, register, length):
