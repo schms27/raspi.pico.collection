@@ -1,4 +1,5 @@
 import time
+import digitalio
 import board
 import displayio
 import adafruit_il0373
@@ -6,7 +7,15 @@ import busio
 import terminalio
 import adafruit_ccs811
 from adafruit_display_text import label
+from adafruit_display_shapes.rect import Rect
 from adafruit_bme280 import basic as adafruit_bme280
+
+led_green = digitalio.DigitalInOut(board.GP2)
+led_green.direction = digitalio.Direction.OUTPUT
+led_yellow = digitalio.DigitalInOut(board.GP3)
+led_yellow.direction = digitalio.Direction.OUTPUT
+led_red = digitalio.DigitalInOut(board.GP4)
+led_red.direction = digitalio.Direction.OUTPUT
 
 # Used to ensure the display is free in CircuitPython
 displayio.release_displays()
@@ -18,6 +27,174 @@ BLACK = 0x000000
 WHITE = 0xFFFFFF
 RED = 0xFF0000
 COLORS = [BLACK, WHITE, RED]
+
+palette = displayio.Palette(3)
+palette[0] = COLORS[0]
+palette[1] = COLORS[1]
+palette[2] = COLORS[2]
+
+
+display_background = None
+last_co2_vals = []
+
+header_group = displayio.Group(scale=1, x=5, y=5)
+title_group = displayio.Group(scale=2, x=10, y=20)
+body_group = displayio.Group(scale=1, x=10, y=40)
+desc_sub_group = displayio.Group(scale=1, x=0, y=0)
+val_sub_group = displayio.Group(scale=1, x=73, y=0)
+line_graph_sub_group = displayio.Group(scale=1, x=138, y=0)
+body_group.append(desc_sub_group)
+body_group.append(val_sub_group)
+body_group.append(line_graph_sub_group)
+
+def setDisplayBackground(color_index, group):
+    global display_background
+
+    # Set a background
+    background_bitmap = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
+    background_bitmap.fill(color_index)
+    bg_tile = displayio.TileGrid(background_bitmap, pixel_shader=palette)
+
+    if display_background is not None:
+        bg_i = group.index(display_background)
+        group.remove(display_background)
+        group.insert(bg_i, bg_tile)
+    else:
+        group.append(bg_tile)
+
+    display_background = bg_tile
+
+def setTitle(text, colorIndex=0):
+    title_label = label.Label(terminalio.FONT, text=text, color=COLORS[colorIndex])
+    if len(title_group) > 0:
+        title_group.pop(0)
+    title_group.append(title_label)
+
+def setHeader(text, index, x, colorIndex=0, lbl_direction="LTR"):
+    text_label = label.Label(terminalio.FONT, x=x, y=2, text=text, color=COLORS[colorIndex], label_direction=lbl_direction)
+    if len(header_group) > index:
+        header_group.pop(index)
+    header_group.insert(index, text_label)
+
+def setMeasLabel(text, index, x, y, colorIndex=0):
+    text_label = label.Label(terminalio.FONT, x=x, y=y, text=text, color=COLORS[colorIndex])
+    if len(desc_sub_group) > index:
+        desc_sub_group.pop(index)
+    desc_sub_group.insert(index, text_label)
+
+def setMeasValue(text, index, x, y, colorIndex=0):
+    text_label = label.Label(terminalio.FONT, x=x, y=y, text=text, color=COLORS[colorIndex])
+    if len(val_sub_group) > index:
+        val_sub_group.pop(index)
+    val_sub_group.insert(index, text_label)
+
+def setTextToDisplay(text, x, y, parentGroup, colorIndex=0):
+    # Draw simple text using the built-in font into a displayio group
+    text_label = label.Label(terminalio.FONT, x=x, y=y, text=text, color=COLORS[colorIndex])
+    parentGroup.append(text_label)
+
+def setTextToDisplayRTL(text, x, y, parentGroup, colorIndex=0):
+    # Draw simple text using the built-in font into a displayio group
+    text_label = label.Label(terminalio.FONT,  x=x, y=y, text=text, color=COLORS[colorIndex], label_direction="RTL")
+    parentGroup.append(text_label)
+
+def drawLineChart():
+    global last_co2_vals
+    for line in line_graph_sub_group:
+        line_graph_sub_group.remove(line)
+    last_co2_vals = last_co2_vals[:8]
+    for idx, avg in enumerate(last_co2_vals):
+        fill_color = 0xFF0000 if avg > 1000 else 0x000000
+        width_px = int(max(5, min((avg - 400) * (63/(1500-400)),63)))
+        rect = Rect(0, 7*idx, width_px, 5, fill=fill_color)
+        line_graph_sub_group.append(rect)
+        outline = Rect(0, 0, 63, 63, outline=0x000000)
+        line_graph_sub_group.append(outline)
+        warning_line = Rect(20, 0, 1, 63, outline=0x000000)
+        line_graph_sub_group.append(warning_line)
+        red_line = Rect(34, 0, 1, 63, outline=0xFF0000)
+        line_graph_sub_group.append(red_line)
+
+def reverse_number(n):
+    r = 0
+    while n > 0:
+        r *= 10
+        r += n % 10
+        n //= 10
+    return r
+
+def setCO2LED(co2_value):
+    led_green.value = False
+    led_yellow.value = False
+    led_red.value = False
+    if co2_value < 750:
+        print("setting green")
+        led_green.value = True
+    elif co2_value < 1200:
+        print("setting yellow")
+        led_yellow.value = True
+    else:
+        print("setting red")
+        led_red.value = True
+
+measurements = {}
+measurements["temperature"] = []
+measurements["rel_humidity"] = []
+measurements["pressure"] = []
+measurements["altitude"] = []
+measurements["co2"] = []
+measurements["voc"] = []
+
+def calculateAverages(temp, humidity, pressure, altitude, co2, voc, finish=False):
+    averages = {}
+    measurements["temperature"].append(temp)
+    measurements["rel_humidity"].append(humidity)
+    measurements["pressure"].append(pressure)
+    measurements["altitude"].append(altitude)
+    measurements["co2"].append(co2)
+    measurements["voc"].append(voc)
+    if finish:
+        for key in measurements:
+            sum_of_elems = sum(measurements[key])
+            num_of_elems = len(measurements[key])
+            avg = round(sum_of_elems / num_of_elems, 1) if num_of_elems > 0 else 0.0
+            print(f"Getting avg: key: {key}, sum {sum_of_elems}, count: {num_of_elems}, avg: {avg}")
+            averages[key] = avg
+            measurements[key].clear()
+    return averages
+
+def updateDisplay(temp, humidity, pressure, altitude, co2, voc, cycle):
+    setDisplayBackground(1, g)
+    setHeader("Display Cycle:", 0, 80)
+
+    setHeader(f"{reverse_number(cycle)}", 1, DISPLAY_WIDTH - 10, colorIndex=2, lbl_direction="RTL")
+    setTitle("Measurements")
+
+    setMeasLabel("Temperature:", 0, 0, 0)
+    setMeasValue(f"{temp} °", 0, 0, 0)
+
+    setMeasLabel("Humidity:", 1, 0, 11)
+    setMeasValue(f"{humidity} %", 1, 0, 11)
+
+    setMeasLabel("Pressure:", 2, 0, 22)
+    setMeasValue(f"{pressure} hPa", 2, 0, 22)
+
+    setMeasLabel("Altitude:", 3, 0, 33)
+    setMeasValue(f"{altitude} m", 3, 0, 33)
+
+    setMeasLabel("CO2:", 4, 0, 44)
+    setMeasValue(f"{co2} ppm", 4, 0, 44)
+
+    setMeasLabel("TVOC:", 5, 0, 55)
+    setMeasValue(f"{voc} ppb", 5, 0, 55)
+
+    drawLineChart()
+
+    display.show(g)
+
+    # Refresh the display to have everything show on the display
+    # NOTE: Do not refresh eInk displays more often than 180 seconds!
+    display.refresh()
 
 # Define the pins needed for display use
 # This pinout is for a Feather M4 and may be different for other boards
@@ -47,76 +224,52 @@ display = adafruit_il0373.IL0373(
 
 # Create a display group for our screen objects
 g = displayio.Group()
+setDisplayBackground(1, g)
+
+
+g.append(header_group)
+g.append(title_group)
+g.append(body_group)
+
+setTitle("Starting up...")
+
+display.show(g)
+display.refresh()
+print("Display initialized")
 
 # Create I2C
 i2c = busio.I2C(scl=board.GP1, sda=board.GP0)
 bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 ccs =  adafruit_ccs811.CCS811(i2c)
 
-# Display a ruler graphic from the root directory of the CIRCUITPY drive
-with open("/display-ruler.bmp", "rb") as f:
-    pic = displayio.OnDiskBitmap(f)
-    # Create a Tilegrid with the bitmap and put in the displayio group
-    # CircuitPython 6 & 7 compatible
-    t = displayio.TileGrid(
-        pic, pixel_shader=getattr(pic, "pixel_shader", displayio.ColorConverter())
-    )
-    # CircuitPython 7 compatible only
-    # t = displayio.TileGrid(pic, pixel_shader=pic.pixel_shader)
-    g.append(t)
-
-    # Place the display group on the screen
-    display.show(g)
-
-    # Refresh the display to have it actually show the image
-    # NOTE: Do not refresh eInk displays sooner than 180 seconds
-    display.refresh()
-    print("refreshed")
-
-    time.sleep(display.time_to_refresh + 10)
-  
-cycle = 0
+cycle = 1
+main_loop_counter = 1
+next_refresh_cycle = int(display.time_to_refresh) + 10      # updates display every ~180 cycles
+measuring_cycle = 10                                        # take a measurement every 10 cycles
+print(f"Refreshing time initial: {next_refresh_cycle}")
 while True:
-    print("Cycle: {0}".format(cycle))
+    if main_loop_counter % next_refresh_cycle == 0:
+        print(f"Refreshing display, cycle: {cycle}")
+        averages = calculateAverages(bme280.temperature, bme280.relative_humidity, bme280.pressure, bme280.altitude, ccs.eco2, ccs.tvoc, True)
+        last_co2_vals.append(averages["co2"])
 
-    temperature = bme280.temperature
-    relative_humidity = bme280.relative_humidity
-    pressure = bme280.pressure
-    altitude = bme280.altitude
-    print(f"Temp {temperature}, rel. Hum {relative_humidity}, pressure {pressure}, altitude {altitude}")
+        updateDisplay(averages["temperature"], averages["rel_humidity"], averages["pressure"], averages["altitude"], averages["co2"], averages["voc"], cycle)
+        setCO2LED(averages["co2"])
+        next_refresh_cycle = int(display.time_to_refresh) + 10
+        cycle += 1
+    elif main_loop_counter % measuring_cycle == 0:
+        temperature = bme280.temperature
+        relative_humidity = bme280.relative_humidity
+        pressure = bme280.pressure
+        altitude = bme280.altitude
+        co2 = ccs.eco2
+        voc = ccs.tvoc
+        print(f"Temp {temperature}, rel. Hum {relative_humidity}, pressure {pressure}, altitude {altitude}")
+        print(f"CO2: {co2}, TVOC: {voc}")
+        calculateAverages(temperature, relative_humidity, pressure, altitude, co2, voc)
 
-    print(f"CO2: {ccs.eco2}, TVOC: {ccs.tvoc}")
-    
-    # Set a background
-    background_bitmap = displayio.Bitmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, 1)
-    # Map colors in a palette
-    palette = displayio.Palette(1)
-    palette[0] = COLORS[cycle%3]
+        print(f"Display updates in {next_refresh_cycle - (main_loop_counter % next_refresh_cycle)} s")
 
-    # Create a Tilegrid with the background and put in the displayio group
-    t = displayio.TileGrid(background_bitmap, pixel_shader=palette)
-    g.append(t)
-    
-    # Draw simple text using the built-in font into a displayio group
-    title_group = displayio.Group(scale=2, x=20, y=20)
-    title = "Hello World!"
-    title_area = label.Label(terminalio.FONT, text=title, color=COLORS[(cycle+1)%3])
-    title_group.append(title_area)  # Add this text to the text group
-    g.append(title_group)
-    
-    # Add counter
-    cycle_group = displayio.Group(scale=2, x=20, y=40)
-    cycle_text = "Cycle: {0}".format(cycle)
-    cycle_area = label.Label(terminalio.FONT, text=cycle_text, color=COLORS[(cycle+2)%3])
-    cycle_group.append(cycle_area)
-    g.append(cycle_group)
-    
-    # Place the display group on the screen
-    display.show(g)
+    time.sleep(1)
 
-    # Refresh the display to have everything show on the display
-    # NOTE: Do not refresh eInk displays more often than 180 seconds!
-    display.refresh()
-    time.sleep(display.time_to_refresh + 10)
-
-    cycle += 1
+    main_loop_counter += 1
