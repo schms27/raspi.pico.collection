@@ -1,5 +1,5 @@
 import qtawesome as qta
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QComboBox
 from PyQt5.QtCore import QSize
 from settings import Settings
 from layout_manager import LayoutManager, SwapDirection
@@ -8,7 +8,7 @@ from util import get_serial_ports, get_sound_device_names
 
 from ui.main_config_window import Ui_MainWindow
 
-from macro_enums import InterProcessCommunication
+from macro_enums import InterProcessCommunication, Color
 
 class MainConfigWindow(QMainWindow, Ui_MainWindow):
     IconSize = QSize(24, 24)
@@ -38,6 +38,8 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         self.sound_device_comboBox.addItems(get_sound_device_names())
         self.sound_device_comboBox.setCurrentText(self.settings.getSetting('sound_playback_device'))
 
+        self.initColorDropdowns()
+
         self.loadLayout()
 
 
@@ -55,13 +57,12 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         self.queues['toMain'].put((InterProcessCommunication.RESTART_BACKGROUND_SERVICE, "", self.__class__.__name__))
 
     def onNewLayoutButtonClicked(self):
-        newLayoutName = self.layoutManager.createNewLayout()
+        self.layoutManager.createNewLayout()
         self.onNextLayoutButtonClicked()
 
     def onDeleteLayoutButtonClicked(self):
         self.layoutManager.deleteCurrentLayout()
         self.loadLayout()
-        # self.onPrevLayoutButtonClicked()
 
     def onNextLayoutButtonClicked(self):
         self.layoutManager.swapLayout(SwapDirection.FORWARD.name)
@@ -80,9 +81,19 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         else:
             self.label_icon_password_set.setPixmap(qta.icon("fa5s.times-circle").pixmap(self.IconSize))
 
+    def initColorDropdowns(self):
+        for key in range(0, 16):
+            cb = self.findChild(QComboBox, f"comboBox_color_{key}")
+            cb.clear()
+            cb.addItems([e.name.lower() for e in Color])
+            
+
     def loadLayout(self):
         self.lineEdit_layout_name.setText(self.layoutManager.getCurrentLayoutName())
         keycolors = self.layoutManager.getBaseColors()
         for key, _ in enumerate(keycolors):
+            color = keycolors[key].lower()
             button = self.findChild(QPushButton, f"pushButton_{key}")
-            button.setStyleSheet(f"background-color: {keycolors[key].lower()}")
+            button.setStyleSheet(f"background-color: {color}")
+            cb = self.findChild(QComboBox, f"comboBox_color_{key}")
+            cb.setCurrentText(color)
