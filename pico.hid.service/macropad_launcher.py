@@ -12,7 +12,7 @@ from multiprocessing import Queue
 
 from app import MacroPadApp
 from tray_icon_app import TrayIconApp
-from macro_enums import InterProcessCommunication
+from macro_enums import InterProcessCommunication, ProcessState, ProcessID
 
 class MacropadLauncher():
 
@@ -40,13 +40,16 @@ class MacropadLauncher():
 
     def parseProcessCommunicationResponse(self, response):
         if response[0] == InterProcessCommunication.PROCESS_INFO:
-            info(f"got response from process '{response[2]}': {response[1]}")
+            info(f"Process Info recieved '{response[3]}': {response[2]}")
+            if response[1] == ProcessState.STARTED:
+                if response[2] == ProcessID.MACROPAD_COM_BG:
+                    self.process_com_queues['fromMain'].put((InterProcessCommunication.REQUEST_RESTART_MACROPAD, "", self.__class__.__name__))
+
         elif response[0] == InterProcessCommunication.RESTART_BACKGROUND_SERVICE:
             debug(f"restarting background process requested by class '{response[1]}'")
             self.background_app.kill()
-            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
+            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, ProcessID.MACROPAD_COM_BG)
             self.background_app.start()
-            self.process_com_queues['fromMain'].put((InterProcessCommunication.REQUEST_RESTART_MACROPAD, "", self.__class__.__name__))
 
 
     def main(self):
@@ -65,14 +68,14 @@ class MacropadLauncher():
         self.process_com_queues = {"toMain":Queue(),"fromMain":Queue()}
 
         try:
-            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, 10)
+            self.background_app = MacroPadApp(vars(self.cmdargs), self.process_com_queues, ProcessID.MACROPAD_COM_BG)
             self.background_app.start()
         except Exception as e:
             error(f"Error occured while constructing '{MacroPadApp.__name__}',{e}")
             return
 
         try:
-            trayApp = TrayIconApp(vars(self.cmdargs), self.process_com_queues, 20)
+            trayApp = TrayIconApp(vars(self.cmdargs), self.process_com_queues, ProcessID.TRAY_APP)
             trayApp.start()
         except Exception as e:
             error(f"Error occured while constructing '{TrayIconApp.__name__}',{e}")

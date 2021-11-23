@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QSystemTrayIcon, QMenu
 
 from ui.main_window import MainConfigWindow
-from macro_enums import InterProcessCommunication
+from macro_enums import InterProcessCommunication, ProcessState
 from settings import Settings
 import resources
 
@@ -36,7 +36,7 @@ class TrayIconApp(Process):
         self.settings = Settings(arguments['settingspath'])
  
     def run(self):
-        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO,"Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
+        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO, ProcessState.STARTED, self.idx, "Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(False)
         app.setWindowIcon(QIcon(':/icons/makro_icon.ico'))
@@ -45,7 +45,7 @@ class TrayIconApp(Process):
         trayIcon = SystemTrayIcon(QIcon(':/icons/makro_icon.ico'), self.window)
         trayIcon.activated.connect(self.onTrayIconActivated)
         trayIcon.show()
-        self.window.resize(650, 620)
+        self.window.resize(1025, 800)
         self.window.move(300, 300)
         self.window.setWindowTitle(WINDOW_TITLE) 
 
@@ -57,6 +57,7 @@ class TrayIconApp(Process):
 
     def onTrayIconActivated(self, reason):
         if reason == QSystemTrayIcon.Trigger:
+            self.window.refreshUi()
             self.window.show()
 
     def processQueueMessages(self):

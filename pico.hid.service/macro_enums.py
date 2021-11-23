@@ -33,6 +33,15 @@ class InterProcessCommunication(Enum):
     CHANGED_PASSWORD = 4
     CHANGED_PASSWORD_SUCCESSFUL = 5
 
+class ProcessState(Enum):
+    STARTED = 0
+    STOPPED = 1
+    SUSPENDED = 2
+
+class ProcessID(Enum):
+    MACROPAD_COM_BG = 10
+    TRAY_APP = 20
+
 class Color(Enum):
     RED = '0xff0000'
     GREEN = '0x00ff00'

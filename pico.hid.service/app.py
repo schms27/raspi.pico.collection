@@ -8,7 +8,7 @@ from multiprocessing import Process
 from serial import Serial, SerialException, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from logging import debug, info, warning, error
 
-from macro_enums import Order, Action, Color, InterProcessCommunication
+from macro_enums import Order, Action, Color, InterProcessCommunication, ProcessState
 from settings import Settings
 from input_manager import InputManager
 from layout_manager import LayoutManager
@@ -47,7 +47,7 @@ class MacroPadApp(Process):
 
     def run(self):
         self.soundMixer.setup_sound_device(self.settings.getSetting("sound_playback_device"))
-        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO,"Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
+        self.queues['toMain'].put((InterProcessCommunication.PROCESS_INFO, ProcessState.STARTED, self.idx,"Process idx={0} is started '{1}', kwargs: '{2}', sys.argv: '{3}".format(self.idx, self.name, self.kwargs, sys.argv), self.__class__.__name__))
         while self.isRunning:
             self.loop()
             self.processQueueMessages()
@@ -128,9 +128,10 @@ class MacroPadApp(Process):
         return "0x%0*X" % (padding,base10)
 
     def send_message(self, payload: str) -> None:
-        self.ser.write(payload) 
-        self.ser.flush()
-        time.sleep(0.00)
+        if self.isDeviceConnected:
+            self.ser.write(payload) 
+            self.ser.flush()
+            time.sleep(0.00)
     # ---------------- END: MOVE TO MESSAGE BUILDER CLASS ------------------
 
     # ---------------- MOVE TO COLOR? CLASS ------------------

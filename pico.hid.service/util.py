@@ -4,7 +4,7 @@ import glob
 import serial
 import sounddevice as sd
 from numpy import log as ln
-from logging import error
+from logging import debug
 
 fibonacci = lambda n:pow(2<<n,n+1,(4<<2*n)-(2<<n)-1)%(2<<n)
 
@@ -62,7 +62,7 @@ def get_serial_ports():
             if "Access is denied" in e.args[0]:
                 result.append(port)
             else:
-                error(f"Port not accessible: {port}, {e}")
+                debug(f"Port not accessible: {e}")
             continue
     return result
 

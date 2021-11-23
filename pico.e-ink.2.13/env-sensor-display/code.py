@@ -10,11 +10,11 @@ from adafruit_display_text import label
 from adafruit_display_shapes.rect import Rect
 from adafruit_bme280 import basic as adafruit_bme280
 
-led_green = digitalio.DigitalInOut(board.GP2)
+led_green = digitalio.DigitalInOut(board.GP18)
 led_green.direction = digitalio.Direction.OUTPUT
-led_yellow = digitalio.DigitalInOut(board.GP3)
+led_yellow = digitalio.DigitalInOut(board.GP19)
 led_yellow.direction = digitalio.Direction.OUTPUT
-led_red = digitalio.DigitalInOut(board.GP4)
+led_red = digitalio.DigitalInOut(board.GP20)
 led_red.direction = digitalio.Direction.OUTPUT
 
 # Used to ensure the display is free in CircuitPython
@@ -102,7 +102,7 @@ def drawLineChart():
     global last_co2_vals
     for line in line_graph_sub_group:
         line_graph_sub_group.remove(line)
-    last_co2_vals = last_co2_vals[:8]
+    last_co2_vals = last_co2_vals[-9:]
     for idx, avg in enumerate(last_co2_vals):
         fill_color = 0xFF0000 if avg > 1000 else 0x000000
         width_px = int(max(5, min((avg - 400) * (63/(1500-400)),63)))
@@ -244,7 +244,7 @@ ccs =  adafruit_ccs811.CCS811(i2c)
 
 cycle = 1
 main_loop_counter = 1
-next_refresh_cycle = int(display.time_to_refresh) + 10      # updates display every ~180 cycles
+next_refresh_cycle = 300     #int(display.time_to_refresh) updates display every ~180 cycles
 measuring_cycle = 10                                        # take a measurement every 10 cycles
 print(f"Refreshing time initial: {next_refresh_cycle}")
 while True:
@@ -255,7 +255,6 @@ while True:
 
         updateDisplay(averages["temperature"], averages["rel_humidity"], averages["pressure"], averages["altitude"], averages["co2"], averages["voc"], cycle)
         setCO2LED(averages["co2"])
-        next_refresh_cycle = int(display.time_to_refresh) + 10
         cycle += 1
     elif main_loop_counter % measuring_cycle == 0:
         temperature = bme280.temperature
