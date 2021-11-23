@@ -2,7 +2,7 @@ import qtawesome as qta
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton
 from PyQt5.QtCore import QSize
 from settings import Settings
-from layout_manager import LayoutManager
+from layout_manager import LayoutManager, SwapDirection
 
 from util import get_serial_ports, get_sound_device_names
 
@@ -27,6 +27,8 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
 
         self.label_icon_password_set.setPixmap(qta.icon("fa5s.times-circle").pixmap(self.IconSize))
 
+        self.lineEdit_layout_name.textChanged.connect(self.onLayoutNameChanged)
+
     def refreshUi(self):
         self.com_port_comboBox.clear()
         self.com_port_comboBox.addItems(get_serial_ports())
@@ -36,19 +38,41 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         self.sound_device_comboBox.addItems(get_sound_device_names())
         self.sound_device_comboBox.setCurrentText(self.settings.getSetting('sound_playback_device'))
 
-        self.setLayoutColors()
+        self.loadLayout()
+
 
     def onSaveButtonClicked(self):
         self.settings.setSetting('device_com_port', self.com_port_comboBox.currentText())
         self.settings.setSetting('sound_playback_device', self.sound_device_comboBox.currentText())
         self.settings.saveSettings()
 
+        self.layoutManager.saveLayout()
+
         if self.password_lineEdit.text():
             self.queues['fromMain'].put((InterProcessCommunication.CHANGED_PASSWORD, self.password_lineEdit.text(), self.__class__.__name__))
         
     def onResetButtonClicked(self):
         self.queues['toMain'].put((InterProcessCommunication.RESTART_BACKGROUND_SERVICE, "", self.__class__.__name__))
-        pass
+
+    def onNewLayoutButtonClicked(self):
+        newLayoutName = self.layoutManager.createNewLayout()
+        self.onNextLayoutButtonClicked()
+
+    def onDeleteLayoutButtonClicked(self):
+        self.layoutManager.deleteCurrentLayout()
+        self.loadLayout()
+        # self.onPrevLayoutButtonClicked()
+
+    def onNextLayoutButtonClicked(self):
+        self.layoutManager.swapLayout(SwapDirection.FORWARD.name)
+        self.loadLayout()
+
+    def onPrevLayoutButtonClicked(self):
+        self.layoutManager.swapLayout(SwapDirection.BACKWARD.name)
+        self.loadLayout()
+
+    def onLayoutNameChanged(self):
+        self.layoutManager.setCurrentLayoutName(self.lineEdit_layout_name.text())
 
     def setPasswordChangedSuccessful(self, wasSuccessful: bool) -> None:
         if wasSuccessful:
@@ -56,7 +80,8 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         else:
             self.label_icon_password_set.setPixmap(qta.icon("fa5s.times-circle").pixmap(self.IconSize))
 
-    def setLayoutColors(self):
+    def loadLayout(self):
+        self.lineEdit_layout_name.setText(self.layoutManager.getCurrentLayoutName())
         keycolors = self.layoutManager.getBaseColors()
         for key, _ in enumerate(keycolors):
             button = self.findChild(QPushButton, f"pushButton_{key}")
