@@ -3,10 +3,13 @@ from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QComboBox
 from PyQt5.QtCore import QSize
 from settings import Settings
 from layout_manager import LayoutManager, SwapDirection
+from functools import partial
 
 from util import get_serial_ports, get_sound_device_names
 
 from ui.main_config_window import Ui_MainWindow
+
+from ui.button_function_dialog import ButtonFunctionDialog
 
 from macro_enums import InterProcessCommunication, Color
 
@@ -28,6 +31,23 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
         self.label_icon_password_set.setPixmap(qta.icon("fa5s.times-circle").pixmap(self.IconSize))
 
         self.lineEdit_layout_name.textChanged.connect(self.onLayoutNameChanged)
+        
+
+        for key in range(0, 16):
+            pb = self.findChild(QPushButton, f"pushButton_f_{key}")
+            pb.clicked.connect(partial(self.onFunctionButtonClicked, key))
+
+    def onCurrentColorChanged(self, cb_index, value):
+        if value:
+            self.setButtonColor(cb_index, value)
+            self.layoutManager.setBaseColor(cb_index, value)
+
+    def onFunctionButtonClicked(self, btn_index):
+        dlg = ButtonFunctionDialog()
+        if dlg.exec():
+            print("Success!")
+        else:
+            print("Cancel!")
 
     def refreshUi(self):
         self.com_port_comboBox.clear()
@@ -84,16 +104,24 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
     def initColorDropdowns(self):
         for key in range(0, 16):
             cb = self.findChild(QComboBox, f"comboBox_color_{key}")
+            try:
+                cb.currentTextChanged.disconnect()
+            except:
+                pass
             cb.clear()
             cb.addItems([e.name.lower() for e in Color])
+            cb.currentTextChanged.connect(partial(self.onCurrentColorChanged, key))
             
+
+    def setButtonColor(self, btn_index, color):
+        button = self.findChild(QPushButton, f"pushButton_{btn_index}")
+        button.setStyleSheet(f"background-color: {color}")
 
     def loadLayout(self):
         self.lineEdit_layout_name.setText(self.layoutManager.getCurrentLayoutName())
         keycolors = self.layoutManager.getBaseColors()
         for key, _ in enumerate(keycolors):
             color = keycolors[key].lower()
-            button = self.findChild(QPushButton, f"pushButton_{key}")
-            button.setStyleSheet(f"background-color: {color}")
+            self.setButtonColor(key, color)
             cb = self.findChild(QComboBox, f"comboBox_color_{key}")
             cb.setCurrentText(color)

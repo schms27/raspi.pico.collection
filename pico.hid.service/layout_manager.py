@@ -52,6 +52,11 @@ class LayoutManager():
             keycolors[c['key']] = c['color']
         return keycolors
 
+    def setBaseColor(self, index, color) -> None:
+        colorUpper = color.upper()
+        if self.getBaseColors()[index] != colorUpper:
+            self.layoutData['layouts'][self.currentLayoutIndex]['baseColors'][index]['color'] = color.upper()
+
     def createNewLayout(self) -> str:
         initialName = 'New Layout'
         defaultSwapAction = {
