@@ -43,8 +43,10 @@ class MainConfigWindow(QMainWindow, Ui_MainWindow):
             self.layoutManager.setBaseColor(cb_index, value)
 
     def onFunctionButtonClicked(self, btn_index):
-        dlg = ButtonFunctionDialog()
+        actions = self.layoutManager.getAction(btn_index)
+        dlg = ButtonFunctionDialog(actions)
         if dlg.exec():
+            # TODO: save dlg.functionDefinitions[dlg.currentFunctionDef] to LayoutManager
             print("Success!")
         else:
             print("Cancel!")

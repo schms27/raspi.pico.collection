@@ -170,8 +170,8 @@ class MacroPadApp(Process):
         key = None
         if len(args) > 0:
             key = int(args[0], 16)
-        action = self.layoutManager.getAction(command, key)
-        if action == None or command == Order.HELLO or command == Order.DEVICE_READY:
+        action = self.layoutManager.getAction(key, command)
+        if not action or command == Order.HELLO or command == Order.DEVICE_READY:
             return
         if action['type'] == Action.RUN_PROGRAM.name:
             self.run_program(action['program'])

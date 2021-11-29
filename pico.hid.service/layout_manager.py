@@ -36,15 +36,32 @@ class LayoutManager():
     def switchLayout(self, layoutIndex: int) -> None: 
         self.currentLayoutIndex = layoutIndex
 
-    def getAction(self, keycode: Order, key: int) -> str:
-        if keycode == None or key == None or key == -1:
+    def getAction(self, key: int, keycode: Order = None):
+        result = []
+        if key == None or key == -1:
             return None
         for a in self.layoutData['layouts'][self.currentLayoutIndex]['actions']:
             try:
-                if a['key'] == key and a['keycode'] == keycode.name:
-                    return a['action']
+                if a['key'] == key:
+                    if keycode != None:
+                        if a['keycode'] == keycode.name:
+                            return a['action']
+                    else:
+                        result.append(a)
             except:
                 debug("requested action not found, check layout config, key: '{0}', keycode:'{1}'".format(key, keycode))
+        return result
+
+    # def getAction(self, key: int) -> dict:
+    #     result = {}
+    #     if key != None or key > -1:
+    #         for a in self.layoutData['layouts'][self.currentLayoutIndex]['actions']:
+    #             try:
+    #                 if a['key'] == key:
+    #                     result[a['keycode']] = a
+    #             except:
+    #                 debug(f"requested action not found, check layout config, key: '{key}'")
+    #     return result
 
     def getBaseColors(self) -> 'dict[str, str]':
         keycolors = {}

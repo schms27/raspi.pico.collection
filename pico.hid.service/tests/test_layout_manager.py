@@ -20,7 +20,7 @@ class TestLayoutManager(unittest.TestCase):
         self.assertEqual(self.layout_manager.currentLayoutIndex, 0)
 
     def test_get_action(self):
-        action = self.layout_manager.getAction(Order.SHORT_PRESSED, 1)
+        action = self.layout_manager.getAction(1, Order.SHORT_PRESSED)
         self.assertIsNotNone(action)
         self.assertEqual(action['type'], 'SOUND_MIXER')
        
