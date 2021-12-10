@@ -37,6 +37,8 @@ palette[2] = COLORS[2]
 display_background = None
 last_co2_vals = []
 
+CO2_BASELINE = 30554 #29908 #30884 #31092 #30772
+
 header_group = displayio.Group(scale=1, x=5, y=5)
 title_group = displayio.Group(scale=2, x=10, y=20)
 body_group = displayio.Group(scale=1, x=10, y=40)
@@ -163,11 +165,14 @@ def calculateAverages(temp, humidity, pressure, altitude, co2, voc, finish=False
             measurements[key].clear()
     return averages
 
-def updateDisplay(temp, humidity, pressure, altitude, co2, voc, cycle):
+def updateDisplay(temp, humidity, pressure, altitude, co2, voc, cycle, curr_baseline):
     setDisplayBackground(1, g)
-    setHeader("Display Cycle:", 0, 80)
 
-    setHeader(f"{reverse_number(cycle)}", 1, DISPLAY_WIDTH - 10, colorIndex=2, lbl_direction="RTL")
+    setHeader(f"BL: {curr_baseline}", 0, 0)
+
+    setHeader("Display Cycle:", 1, 80)
+
+    setHeader(f"{reverse_number(cycle)}", 2, DISPLAY_WIDTH - 10, colorIndex=2, lbl_direction="RTL")
     setTitle("Measurements")
 
     setMeasLabel("Temperature:", 0, 0, 0)
@@ -242,6 +247,14 @@ i2c = busio.I2C(scl=board.GP1, sda=board.GP0)
 bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=0x76)
 ccs =  adafruit_ccs811.CCS811(i2c)
 
+# bme280.overscan_temperature = adafruit_bme280.OVERSCAN_X1
+# bme280.mode = adafruit_bme280.MODE_SLEEP
+
+# print(f"BME280 Sensor {bme280.overscan_temperature}, time: {bme280.measurement_time_typical}, {bme280.measurement_time_max}, mode: {bme280.mode}")
+
+# Set basevalue
+ccs.baseline = CO2_BASELINE #31092 #30772
+
 cycle = 1
 main_loop_counter = 1
 next_refresh_cycle = 300     #int(display.time_to_refresh) updates display every ~180 cycles
@@ -249,14 +262,17 @@ measuring_cycle = 10                                        # take a measurement
 print(f"Refreshing time initial: {next_refresh_cycle}")
 while True:
     if main_loop_counter % next_refresh_cycle == 0:
+        ccs.baseline = CO2_BASELINE
         print(f"Refreshing display, cycle: {cycle}")
+        print(f"baseline co2-sensor: {ccs.baseline}")
         averages = calculateAverages(bme280.temperature, bme280.relative_humidity, bme280.pressure, bme280.altitude, ccs.eco2, ccs.tvoc, True)
         last_co2_vals.append(averages["co2"])
 
-        updateDisplay(averages["temperature"], averages["rel_humidity"], averages["pressure"], averages["altitude"], averages["co2"], averages["voc"], cycle)
+        updateDisplay(averages["temperature"], averages["rel_humidity"], averages["pressure"], averages["altitude"], averages["co2"], averages["voc"], cycle, ccs.baseline)
         setCO2LED(averages["co2"])
         cycle += 1
     elif main_loop_counter % measuring_cycle == 0:
+        ccs.baseline = CO2_BASELINE
         temperature = bme280.temperature
         relative_humidity = bme280.relative_humidity
         pressure = bme280.pressure
