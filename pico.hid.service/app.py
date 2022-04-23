@@ -66,7 +66,7 @@ class MacroPadApp(Process):
                 parity=PARITY_NONE,
                 stopbits=STOPBITS_ONE,
                 bytesize=EIGHTBITS,
-                timeout=1)
+                timeout=None)
         except PermissionError as e:
             warning(e.strerror)
             return
@@ -103,11 +103,17 @@ class MacroPadApp(Process):
 
     def readSerial(self) -> None:
         try:
+            # serialData = self.ser.read(1)           # Wait forever for anything
+            # time.sleep(1)              # Sleep (or inWaiting() doesn't give the correct value)
+            # data_left = self.ser.inWaiting()  # Get the number of characters ready to be read
+            # serialData += self.ser.read(data_left)
+            # self.parseInput(serialData.strip())
+            serialData = self.ser.read(1)
             bytestoread = self.ser.inWaiting()
             if bytestoread != 0:
                 debug(f"in waiting: {bytestoread}")
-                serialData = self.ser.readline().strip()
-                self.parseInput(serialData)
+                serialData += self.ser.readline()
+                self.parseInput(serialData.strip())
         except Exception as e:
             warning(f"reading exception: {e}")
             self.isDeviceConnected = False
