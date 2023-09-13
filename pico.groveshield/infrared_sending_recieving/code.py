@@ -97,20 +97,21 @@ def readAndPrintIRInput():
     time.sleep(1) 
 
 while True:
-    # readAndPrintIRInput()
-    print("start, turning on")
-    arr = convertHexToPulsearray(led_strip_commands["ON"])
-    print(f"array {arr}")
-    ir_send.send(arr)
+    readAndPrintIRInput()
+    time.sleep(1) 
+    # print("start, turning on")
+    # arr = convertHexToPulsearray(led_strip_commands["ON"])
+    # print(f"array {arr}")
+    # ir_send.send(arr)
 
-    for command in led_strip_commands:
-        if command == "ON" or command == "OFF" or command == "OFF" or command == "OFF":
-            continue
-        hexCommand = led_strip_commands[command]
-        print(f"setting command: '{command}, hexcode: {hex(hexCommand)}'")
-        ir_send.send(convertHexToPulsearray(hexCommand))
-        time.sleep(3)
+    # for command in led_strip_commands:
+    #     if command == "ON" or command == "OFF" or command == "OFF" or command == "OFF":
+    #         continue
+    #     hexCommand = led_strip_commands[command]
+    #     print(f"setting command: '{command}, hexcode: {hex(hexCommand)}'")
+    #     ir_send.send(convertHexToPulsearray(hexCommand))
+    #     time.sleep(3)
 
-    print("finished, turning off")
-    ir_send.send(convertHexToPulsearray(led_strip_commands["OFF"]))
-    time.sleep(30)
+    # print("finished, turning off")
+    # ir_send.send(convertHexToPulsearray(led_strip_commands["OFF"]))
+    # time.sleep(30)
